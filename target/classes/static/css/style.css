@@ -1,0 +1,190 @@
+:root {
+    --cor-fundo: #eef1f6;
+    --cor-superficie: #ffffff;
+    --cor-borda: #e2e5ec;
+    --cor-texto: #1f2430;
+    --cor-texto-suave: #667085;
+    --cor-primaria: #4f6df5;
+    --cor-primaria-hover: #3c56d6;
+    --cor-secundaria: #eef0ff;
+    --cor-sucesso: #12875e;
+    --cor-sucesso-bg: #e5f7ee;
+    --cor-erro: #c0322a;
+    --cor-erro-bg: #fdecea;
+    --cor-aviso: #b16a00;
+    --cor-aviso-bg: #fff3e0;
+    --raio: 12px;
+    --sombra: 0 4px 16px rgba(20, 24, 40, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    margin: 0;
+    padding: 32px 16px;
+}
+
+.container { max-width: 1040px; margin: auto; }
+
+header.topo {
+    margin-bottom: 24px;
+}
+
+header.topo h1 {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+}
+
+header.topo p {
+    margin: 0;
+    color: var(--cor-texto-suave);
+    font-size: 0.9rem;
+}
+
+header.topo .links {
+    margin-top: 12px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+header.topo .links a {
+    color: var(--cor-primaria);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+header.topo .links a:hover { text-decoration: underline; }
+
+#mensagem {
+    display: none;
+    padding: 12px 16px;
+    border-radius: var(--raio);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+#mensagem.sucesso {
+    display: block;
+    background: var(--cor-sucesso-bg);
+    color: var(--cor-sucesso);
+    border: 1px solid rgba(18, 135, 94, 0.25);
+}
+
+#mensagem.erro {
+    display: block;
+    background: var(--cor-erro-bg);
+    color: var(--cor-erro);
+    border: 1px solid rgba(192, 50, 42, 0.25);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.card {
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 20px;
+}
+
+.card h2 {
+    margin: 0 0 14px;
+    font-size: 1.05rem;
+}
+
+.card + .card { margin-top: 0; }
+
+.secao { margin-top: 20px; }
+
+label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--cor-texto-suave);
+    margin-bottom: 4px;
+}
+
+input, textarea, select {
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    font-size: 0.92rem;
+    background: #fbfbfd;
+    transition: border-color .15s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--cor-primaria);
+    background: #fff;
+}
+
+textarea { min-height: 70px; resize: vertical; }
+
+.botoes { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+
+button {
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--cor-primaria);
+    color: #fff;
+    transition: background .15s ease, opacity .15s ease;
+}
+
+button:hover { background: var(--cor-primaria-hover); }
+
+button.secundario {
+    background: var(--cor-secundaria);
+    color: var(--cor-primaria);
+}
+
+button.secundario:hover { background: #dfe3ff; }
+
+button:disabled { opacity: 0.6; cursor: default; }
+
+ul { list-style: none; padding: 0; margin: 10px 0 0; }
+
+li.item {
+    padding: 10px 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 0.88rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge.liberado { background: var(--cor-sucesso-bg); color: var(--cor-sucesso); }
+.badge.bloqueado { background: var(--cor-erro-bg); color: var(--cor-erro); }
+.badge.pendente { background: var(--cor-aviso-bg); color: var(--cor-aviso); }
+.badge.neutro { background: var(--cor-secundaria); color: var(--cor-primaria); }
+
+@media (max-width: 720px) {
+    .grid { grid-template-columns: 1fr; }
+}
