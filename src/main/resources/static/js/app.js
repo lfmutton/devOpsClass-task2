@@ -1,5 +1,14 @@
 const AUTH = "Basic " + btoa("admin:123456");
 
+const SECOES = {
+    usuarios: { titulo: "Usuários", colunas: ["ID", "Nome", "Plano", "Créditos", "Concluídos", "Moedas", "Mensalidade", "Acesso"] },
+    cursos: { titulo: "Cursos", colunas: ["ID", "Título", "Descrição"] },
+    matriculas: { titulo: "Matrículas", colunas: ["ID", "Curso", "Status", "Nota", "Bônus"] },
+    mensalidade: { titulo: "Mensalidade", colunas: ["ID", "Nome", "Mensalidade", "Acesso"] }
+};
+
+let secaoAtual = "usuarios";
+
 function mostrarMensagem(texto, tipo) {
     const el = document.getElementById("mensagem");
     // Cancela qualquer timer de uma mensagem anterior antes de exibir a nova,
@@ -66,8 +75,45 @@ function badgeMensalidade(usuario) {
         return `<span class="badge neutro">sem mensalidade</span>`;
     }
     const classe = usuario.statusMensalidade === "PAGA" ? "liberado" : "pendente";
-    return `<span class="badge ${classe}">mensalidade ${usuario.statusMensalidade.toLowerCase()}</span>`;
+    return `<span class="badge ${classe}">${usuario.statusMensalidade.toLowerCase()}</span>`;
 }
+
+// ---------- Tabela central ----------
+
+function renderTabela(colunas, linhas) {
+    document.getElementById("tabela-thead-row").innerHTML = colunas.map(c => `<th>${c}</th>`).join("");
+    document.getElementById("tabela-tbody").innerHTML = linhas.length
+        ? linhas.map(linha => `<tr>${linha.map(celula => `<td>${celula}</td>`).join("")}</tr>`).join("")
+        : `<tr><td class="vazio" colspan="${colunas.length}">Nenhum registro carregado.</td></tr>`;
+}
+
+function selecionarSecao(secao) {
+    secaoAtual = secao;
+
+    document.querySelectorAll(".nav-item").forEach(btn => {
+        btn.classList.toggle("ativo", btn.dataset.secao === secao);
+    });
+    document.querySelectorAll(".painel-acao").forEach(el => {
+        el.hidden = el.dataset.secaoPainel !== secao;
+    });
+
+    document.getElementById("tabela-titulo").textContent = SECOES[secao].titulo;
+    renderTabela(SECOES[secao].colunas, []);
+
+    if (secao === "usuarios") listarUsuarios();
+    if (secao === "cursos") listarCursos();
+    // matriculas e mensalidade dependem de um ID informado pelo usuario,
+    // entao a tabela comeca vazia ate uma acao ser executada.
+}
+
+function atualizarSecaoAtual() {
+    if (secaoAtual === "usuarios") listarUsuarios();
+    else if (secaoAtual === "cursos") listarCursos();
+    else if (secaoAtual === "matriculas") listarMatriculasUsuario();
+    else mostrarMensagem("Informe o usuário e atualize a mensalidade para ver o resultado.", "erro");
+}
+
+// ---------- Usuarios ----------
 
 async function criarUsuario() {
     const payload = {
@@ -84,13 +130,13 @@ async function criarUsuario() {
 
 async function listarUsuarios() {
     const usuarios = await executar(() => api("/api/usuarios"));
-    document.getElementById("usuarios").innerHTML = usuarios.map(u => `
-        <li class="item">
-            <span>${u.id} - ${u.nome} | plano: ${u.plano} | créditos: ${u.creditosCursos} | concluídos: ${u.cursosConcluidosComSucesso} | moedas: ${u.moedas}</span>
-            <span>${badgeMensalidade(u)} ${badgeAcesso(u)}</span>
-        </li>
-    `).join("");
+    renderTabela(SECOES.usuarios.colunas, usuarios.map(u => [
+        u.id, u.nome, u.plano, u.creditosCursos, u.cursosConcluidosComSucesso, u.moedas,
+        badgeMensalidade(u), badgeAcesso(u)
+    ]));
 }
+
+// ---------- Cursos ----------
 
 async function criarCurso() {
     const payload = {
@@ -106,10 +152,10 @@ async function criarCurso() {
 
 async function listarCursos() {
     const cursos = await executar(() => api("/api/cursos"));
-    document.getElementById("cursos").innerHTML = cursos.map(c =>
-        `<li class="item"><span>${c.id} - ${c.titulo}</span></li>`
-    ).join("");
+    renderTabela(SECOES.cursos.colunas, cursos.map(c => [c.id, c.titulo, c.descricao ?? "-"]));
 }
+
+// ---------- Matriculas ----------
 
 async function matricular() {
     const payload = {
@@ -121,6 +167,8 @@ async function matricular() {
         () => api("/api/matriculas", { method: "POST", body: JSON.stringify(payload) })
     );
     mostrarMensagem(`Matrícula ${resultado.id} criada para ${resultado.usuarioNome}.`, "sucesso");
+    document.getElementById("consultaUsuarioId").value = payload.usuarioId;
+    listarMatriculasUsuario();
 }
 
 async function concluirMatricula() {
@@ -130,15 +178,18 @@ async function concluirMatricula() {
         () => api(`/api/matriculas/${id}/concluir`, { method: "PUT", body: JSON.stringify(payload) })
     );
     mostrarMensagem(`Matrícula ${resultado.id} concluída com status ${resultado.status}.`, "sucesso");
+    if (document.getElementById("consultaUsuarioId").value) listarMatriculasUsuario();
 }
 
 async function listarMatriculasUsuario() {
     const usuarioId = document.getElementById("consultaUsuarioId").value;
     const matriculas = await executar(() => api(`/api/matriculas/usuario/${usuarioId}`));
-    document.getElementById("matriculas").innerHTML = matriculas.map(m =>
-        `<li class="item"><span>${m.id} - ${m.cursoTitulo} | status: ${m.status} | nota: ${m.notaFinal ?? '-'} | bônus: ${m.bonus}</span></li>`
-    ).join("");
+    renderTabela(SECOES.matriculas.colunas, matriculas.map(m => [
+        m.id, m.cursoTitulo, m.status, m.notaFinal ?? "-", m.bonus ? "Sim" : "Não"
+    ]));
 }
+
+// ---------- Mensalidade ----------
 
 async function atualizarMensalidade() {
     const usuarioId = document.getElementById("mensalidadeUsuarioId").value;
@@ -147,10 +198,11 @@ async function atualizarMensalidade() {
         () => api(`/api/usuarios/${usuarioId}/mensalidade`, { method: "PUT", body: JSON.stringify({ status }) }),
         "Mensalidade atualizada."
     );
-    document.getElementById("mensalidadeResultado").innerHTML = `
-        <li class="item">
-            <span>${usuario.id} - ${usuario.nome}</span>
-            <span>${badgeMensalidade(usuario)} ${badgeAcesso(usuario)}</span>
-        </li>
-    `;
+    renderTabela(SECOES.mensalidade.colunas, [[
+        usuario.id, usuario.nome, badgeMensalidade(usuario), badgeAcesso(usuario)
+    ]]);
 }
+
+// ---------- Inicializacao ----------
+
+selecionarSecao("usuarios");
