@@ -2,10 +2,12 @@ const AUTH = "Basic " + btoa("admin:123456");
 
 function mostrarMensagem(texto, tipo) {
     const el = document.getElementById("mensagem");
+    // Cancela qualquer timer de uma mensagem anterior antes de exibir a nova,
+    // senao um "sucesso" antigo pode apagar um "erro" mostrado depois dele.
+    clearTimeout(mostrarMensagem._timer);
     el.textContent = texto;
     el.className = tipo;
     if (tipo === "sucesso") {
-        clearTimeout(mostrarMensagem._timer);
         mostrarMensagem._timer = setTimeout(() => {
             el.className = "";
             el.textContent = "";
