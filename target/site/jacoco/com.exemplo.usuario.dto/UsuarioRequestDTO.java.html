@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioRequestDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.dto</a> &gt; <span class="el_source">UsuarioRequestDTO.java</span></div><h1>UsuarioRequestDTO.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+// DTO de entrada para criacao de usuario.
+// Aqui ficam as validacoes de borda da API.
+public class UsuarioRequestDTO {
+
+    @NotBlank(message = &quot;Nome e obrigatorio&quot;)
+    private String nome;
+
+    @Email(message = &quot;E-mail invalido&quot;)
+    @NotBlank(message = &quot;E-mail e obrigatorio&quot;)
+    private String email;
+
+    @NotBlank(message = &quot;Senha e obrigatoria&quot;)
+    private String senha;
+
+<span class="fc" id="L20">    public UsuarioRequestDTO() {</span>
+<span class="fc" id="L21">    }</span>
+
+    public String getNome() {
+<span class="fc" id="L24">        return nome;</span>
+    }
+
+    public void setNome(String nome) {
+<span class="fc" id="L28">        this.nome = nome;</span>
+<span class="fc" id="L29">    }</span>
+
+    public String getEmail() {
+<span class="fc" id="L32">        return email;</span>
+    }
+
+    public void setEmail(String email) {
+<span class="fc" id="L36">        this.email = email;</span>
+<span class="fc" id="L37">    }</span>
+
+    public String getSenha() {
+<span class="fc" id="L40">        return senha;</span>
+    }
+
+    public void setSenha(String senha) {
+<span class="fc" id="L44">        this.senha = senha;</span>
+<span class="fc" id="L45">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

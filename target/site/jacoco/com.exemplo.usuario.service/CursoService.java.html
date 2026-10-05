@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CursoService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.service</a> &gt; <span class="el_source">CursoService.java</span></div><h1>CursoService.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.service;
+
+import com.exemplo.usuario.domain.Curso;
+import com.exemplo.usuario.dto.CursoRequestDTO;
+import com.exemplo.usuario.dto.CursoResponseDTO;
+import com.exemplo.usuario.repository.CursoRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+// Camada: SERVICE.
+// Service concentra regras de negocio e orquestracao do caso de uso.
+@Service
+public class CursoService {
+
+    private final CursoRepository repository;
+
+    // Injeção de dependência por construtor.
+    // O bean de CursoRepository e entregue pelo Spring.
+<span class="fc" id="L21">    public CursoService(CursoRepository repository) {</span>
+<span class="fc" id="L22">        this.repository = repository;</span>
+<span class="fc" id="L23">    }</span>
+
+    public List&lt;CursoResponseDTO&gt; listarTodos() {
+        // findAll() vem do JpaRepository.
+        // map(this::toDTO) converte entidade em DTO de saida.
+<span class="fc" id="L28">        return repository.findAll().stream().map(this::toDTO).toList();</span>
+    }
+
+    // @Transactional e tipico da camada de servico.
+    // Indica que o metodo deve executar dentro de uma transacao.
+    @Transactional
+    public CursoResponseDTO criar(CursoRequestDTO dto) {
+        // Aqui o service instancia a entidade de dominio.
+<span class="fc" id="L36">        Curso curso = new Curso(dto.getTitulo(), dto.getDescricao());</span>
+
+        // save(...) persiste no banco.
+<span class="fc" id="L39">        return toDTO(repository.save(curso));</span>
+    }
+
+    // Metodo privado de apoio para mapear entidade -&gt; DTO.
+    private CursoResponseDTO toDTO(Curso curso) {
+<span class="fc" id="L44">        return new CursoResponseDTO(curso.getId(), curso.getTitulo(), curso.getDescricao());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

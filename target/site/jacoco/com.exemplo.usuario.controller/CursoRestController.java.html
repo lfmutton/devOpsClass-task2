@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CursoRestController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.controller</a> &gt; <span class="el_source">CursoRestController.java</span></div><h1>CursoRestController.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.controller;
+
+import com.exemplo.usuario.dto.CursoRequestDTO;
+import com.exemplo.usuario.dto.CursoResponseDTO;
+import com.exemplo.usuario.service.CursoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+// Camada: CONTROLLER.
+// Controller conversa com HTTP.
+// Ela recebe requisicoes, chama a camada de service e devolve JSON.
+@RestController
+@RequestMapping(&quot;/api/cursos&quot;)
+@Tag(name = &quot;Cursos&quot;)
+public class CursoRestController {
+
+    private final CursoService service;
+
+    // Injeção de dependência por construtor.
+    // O Spring Container cria o CursoService e o entrega aqui.
+    // A controller nao usa new CursoService(...).
+<span class="nc" id="L27">    public CursoRestController(CursoService service) {</span>
+<span class="nc" id="L28">        this.service = service;</span>
+<span class="nc" id="L29">    }</span>
+
+    // @GetMapping e tipico/exclusivo da camada controller.
+    // Mapeia HTTP GET para listar recursos.
+    @GetMapping
+    @Operation(summary = &quot;Listar cursos&quot;)
+    public List&lt;CursoResponseDTO&gt; listar() {
+<span class="nc" id="L36">        return service.listarTodos();</span>
+    }
+
+    // @PostMapping e tipico/exclusivo da camada controller.
+    // Mapeia HTTP POST para criacao de recurso.
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = &quot;Criar curso&quot;)
+    public CursoResponseDTO criar(@Valid @RequestBody CursoRequestDTO dto) {
+        // @RequestBody converte JSON em objeto Java.
+        // @Valid executa as validacoes do DTO antes de chegar na regra de negocio.
+<span class="nc" id="L47">        return service.criar(dto);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

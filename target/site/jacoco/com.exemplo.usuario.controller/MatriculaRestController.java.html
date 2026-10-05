@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatriculaRestController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.controller</a> &gt; <span class="el_source">MatriculaRestController.java</span></div><h1>MatriculaRestController.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.controller;
+
+import com.exemplo.usuario.dto.ConcluirMatriculaRequestDTO;
+import com.exemplo.usuario.dto.MatriculaRequestDTO;
+import com.exemplo.usuario.dto.MatriculaResponseDTO;
+import com.exemplo.usuario.service.MatriculaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+// Camada: CONTROLLER.
+// Responsavel por expor os endpoints de matricula.
+@RestController
+@RequestMapping(&quot;/api/matriculas&quot;)
+@Tag(name = &quot;Matriculas&quot;)
+public class MatriculaRestController {
+
+    private final MatriculaService service;
+
+    // Injecao de dependência por construtor.
+<span class="nc" id="L25">    public MatriculaRestController(MatriculaService service) {</span>
+<span class="nc" id="L26">        this.service = service;</span>
+<span class="nc" id="L27">    }</span>
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = &quot;Matricular usuario em um curso&quot;)
+    public MatriculaResponseDTO matricular(@Valid @RequestBody MatriculaRequestDTO dto) {
+        // Controller extrai os dados do DTO e repassa para a camada de servico.
+<span class="nc" id="L34">        return service.matricular(dto.getUsuarioId(), dto.getCursoId(), dto.isBonus());</span>
+    }
+
+    // @PutMapping costuma ser usado para atualizacao.
+    @PutMapping(&quot;/{id}/concluir&quot;)
+    @Operation(summary = &quot;Concluir matricula com nota final&quot;)
+    public MatriculaResponseDTO concluir(@PathVariable Long id,
+                                         @Valid @RequestBody ConcluirMatriculaRequestDTO dto) {
+        // @PathVariable pega o id diretamente da URL.
+<span class="nc" id="L43">        return service.concluir(id, dto.getNotaFinal());</span>
+    }
+
+    @GetMapping(&quot;/usuario/{usuarioId}&quot;)
+    @Operation(summary = &quot;Listar matriculas por usuario&quot;)
+    public List&lt;MatriculaResponseDTO&gt; listarPorUsuario(@PathVariable Long usuarioId) {
+<span class="nc" id="L49">        return service.listarPorUsuario(usuarioId);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

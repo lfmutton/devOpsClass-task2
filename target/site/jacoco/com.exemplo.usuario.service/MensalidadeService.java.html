@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MensalidadeService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.service</a> &gt; <span class="el_source">MensalidadeService.java</span></div><h1>MensalidadeService.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.service;
+
+import com.exemplo.usuario.domain.Mensalidade;
+import com.exemplo.usuario.domain.StatusMensalidade;
+import com.exemplo.usuario.domain.Usuario;
+import com.exemplo.usuario.dto.MensalidadeRequestDTO;
+import com.exemplo.usuario.dto.UsuarioResponseDTO;
+import com.exemplo.usuario.repository.UsuarioRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+// Camada: SERVICE.
+// Orquestra o caso de uso de atualizacao da mensalidade de um usuario.
+@Service
+public class MensalidadeService {
+
+    private final UsuarioRepository usuarioRepository;
+
+<span class="fc" id="L19">    public MensalidadeService(UsuarioRepository usuarioRepository) {</span>
+<span class="fc" id="L20">        this.usuarioRepository = usuarioRepository;</span>
+<span class="fc" id="L21">    }</span>
+
+    @Transactional
+    public UsuarioResponseDTO atualizarStatus(Long usuarioId, MensalidadeRequestDTO dto) {
+<span class="fc" id="L25">        Usuario usuario = usuarioRepository.findById(usuarioId)</span>
+<span class="fc" id="L26">                .orElseThrow(() -&gt; new RuntimeException(&quot;Usuario nao encontrado&quot;));</span>
+
+<span class="fc" id="L28">        StatusMensalidade status = StatusMensalidade.valueOf(dto.getStatus().trim().toUpperCase());</span>
+
+<span class="fc" id="L30">        Mensalidade mensalidade = usuario.getMensalidade();</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (mensalidade == null) {</span>
+<span class="fc" id="L32">            mensalidade = new Mensalidade(usuario, status);</span>
+<span class="fc" id="L33">            usuario.vincularMensalidade(mensalidade);</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        } else if (status == StatusMensalidade.PAGA) {</span>
+<span class="fc" id="L35">            mensalidade.pagar();</span>
+        } else {
+<span class="fc" id="L37">            mensalidade.marcarComoPendente();</span>
+        }
+
+        // Reavalia o acesso a plataforma imediatamente apos a mudanca de status.
+        // Se ficar bloqueado, a excecao e apenas o sinal de que o estado foi
+        // atualizado; o usuario continua sendo persistido com as flags corretas.
+        try {
+<span class="fc" id="L44">            usuario.validarAcessoPlataforma();</span>
+<span class="fc" id="L45">        } catch (IllegalStateException ignored) {</span>
+            // Estado ja registrado em usuario (acessoAoCurso=false, plataformaCongelada=true).
+<span class="fc" id="L47">        }</span>
+
+<span class="fc" id="L49">        Usuario salvo = usuarioRepository.save(usuario);</span>
+<span class="fc" id="L50">        return toDTO(salvo);</span>
+    }
+
+    private UsuarioResponseDTO toDTO(Usuario usuario) {
+<span class="fc" id="L54">        var assinatura = usuario.getAssinatura();</span>
+<span class="fc" id="L55">        var mensalidade = usuario.getMensalidade();</span>
+<span class="fc" id="L56">        return new UsuarioResponseDTO(</span>
+<span class="fc" id="L57">                usuario.getId(),</span>
+<span class="fc" id="L58">                usuario.getNome(),</span>
+<span class="fc" id="L59">                usuario.getEmail(),</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">                assinatura != null ? assinatura.getPlano().name() : null,</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">                assinatura != null ? assinatura.getCreditosCursos() : null,</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">                assinatura != null ? assinatura.getCursosConcluidosComSucesso() : null,</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">                assinatura != null ? assinatura.getMoedas() : null,</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">                mensalidade != null ? mensalidade.getStatus().name() : null,</span>
+<span class="fc" id="L65">                usuario.temAcessoAoCurso(),</span>
+<span class="fc" id="L66">                usuario.isPlataformaCongelada()</span>
+        );
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

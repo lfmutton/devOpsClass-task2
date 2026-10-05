@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.service</a> &gt; <span class="el_source">UsuarioService.java</span></div><h1>UsuarioService.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.service;
+
+import com.exemplo.usuario.domain.Assinatura;
+import com.exemplo.usuario.domain.Mensalidade;
+import com.exemplo.usuario.domain.StatusMensalidade;
+import com.exemplo.usuario.domain.Usuario;
+import com.exemplo.usuario.dto.UsuarioRequestDTO;
+import com.exemplo.usuario.dto.UsuarioResponseDTO;
+import com.exemplo.usuario.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+// Camada: SERVICE.
+// Aqui ficam as regras de negocio do caso de uso de usuario.
+@Service
+public class UsuarioService {
+
+    private final UsuarioRepository repository;
+    private final PasswordEncoder passwordEncoder;
+
+    // Duas dependencias sao injetadas aqui:
+    // 1) UsuarioRepository -&gt; bean criado pelo Spring Data
+    // 2) PasswordEncoder -&gt; bean declarado em SecurityConfig
+<span class="fc" id="L27">    public UsuarioService(UsuarioRepository repository, PasswordEncoder passwordEncoder) {</span>
+<span class="fc" id="L28">        this.repository = repository;</span>
+<span class="fc" id="L29">        this.passwordEncoder = passwordEncoder;</span>
+<span class="fc" id="L30">    }</span>
+
+    public List&lt;UsuarioResponseDTO&gt; listarTodos() {
+<span class="fc" id="L33">        return repository.findAll().stream().map(this::toDTO).toList();</span>
+    }
+
+    public UsuarioResponseDTO buscarPorId(Long id) {
+<span class="fc" id="L37">        Usuario usuario = repository.findById(id)</span>
+<span class="fc" id="L38">                .orElseThrow(() -&gt; new RuntimeException(&quot;Usuario nao encontrado&quot;));</span>
+<span class="fc" id="L39">        return toDTO(usuario);</span>
+    }
+
+    @Transactional
+    public UsuarioResponseDTO criar(UsuarioRequestDTO dto) {
+        // A camada service costuma preparar/normalizar dados para a regra de negocio.
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        String emailNormalizado = dto.getEmail() == null ? null : dto.getEmail().trim().toLowerCase();</span>
+
+        // Valida regra de unicidade antes de persistir.
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        if (repository.existsByEmailValor(emailNormalizado)) {</span>
+<span class="fc" id="L49">            throw new RuntimeException(&quot;E-mail ja cadastrado&quot;);</span>
+        }
+
+        // A senha e criptografada na camada de service.
+        // Isso e importante didaticamente: o controller nao deve criptografar,
+        // e o repository nao deve conter regra de negocio.
+<span class="fc" id="L55">        Usuario usuario = new Usuario(</span>
+<span class="fc" id="L56">                dto.getNome(),</span>
+                emailNormalizado,
+<span class="fc" id="L58">                passwordEncoder.encode(dto.getSenha())</span>
+        );
+
+        // Cria a assinatura padrao e vincula ao usuario.
+<span class="fc" id="L62">        Assinatura assinatura = new Assinatura(usuario);</span>
+<span class="fc" id="L63">        usuario.vincularAssinatura(assinatura);</span>
+
+        // Cria a mensalidade ja paga e vincula ao usuario, liberando o acesso
+        // a plataforma desde o cadastro.
+<span class="fc" id="L67">        Mensalidade mensalidade = new Mensalidade(usuario, StatusMensalidade.PAGA);</span>
+<span class="fc" id="L68">        usuario.vincularMensalidade(mensalidade);</span>
+<span class="fc" id="L69">        usuario.validarAcessoPlataforma();</span>
+
+<span class="fc" id="L71">        Usuario salvo = repository.save(usuario);</span>
+<span class="fc" id="L72">        return toDTO(salvo);</span>
+    }
+
+    private UsuarioResponseDTO toDTO(Usuario usuario) {
+<span class="fc" id="L76">        var assinatura = usuario.getAssinatura();</span>
+<span class="fc" id="L77">        var mensalidade = usuario.getMensalidade();</span>
+<span class="fc" id="L78">        return new UsuarioResponseDTO(</span>
+<span class="fc" id="L79">                usuario.getId(),</span>
+<span class="fc" id="L80">                usuario.getNome(),</span>
+<span class="fc" id="L81">                usuario.getEmail(),</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">                assinatura != null ? assinatura.getPlano().name() : null,</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">                assinatura != null ? assinatura.getCreditosCursos() : null,</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">                assinatura != null ? assinatura.getCursosConcluidosComSucesso() : null,</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">                assinatura != null ? assinatura.getMoedas() : null,</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">                mensalidade != null ? mensalidade.getStatus().name() : null,</span>
+<span class="fc" id="L87">                usuario.temAcessoAoCurso(),</span>
+<span class="fc" id="L88">                usuario.isPlataformaCongelada()</span>
+        );
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

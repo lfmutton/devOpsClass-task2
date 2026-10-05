@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioApplication.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario</a> &gt; <span class="el_source">UsuarioApplication.java</span></div><h1>UsuarioApplication.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+// @SpringBootApplication e a anotacao principal do Spring Boot.
+// Ela equivale, na pratica, a combinar tres ideias importantes:
+// 1) @Configuration -&gt; esta classe tambem pode registrar beans/configuracoes.
+// 2) @EnableAutoConfiguration -&gt; o Spring tenta configurar muita coisa automaticamente.
+// 3) @ComponentScan -&gt; o Spring varre os pacotes abaixo deste pacote procurando classes anotadas.
+//
+// Como esta classe esta em com.exemplo.usuario, o Spring vai localizar automaticamente:
+// - controllers
+// - services
+// - repositories
+// - configs
+// - outros componentes dentro deste pacote e subpacotes
+@SpringBootApplication
+<span class="nc" id="L19">public class UsuarioApplication {</span>
+
+    // Metodo main = ponto de entrada padrao de uma aplicacao Java.
+    // Quando executamos este metodo, o Spring Boot sobe toda a aplicacao.
+    public static void main(String[] args) {
+        // SpringApplication.run(...) cria o contexto Spring (container).
+        // E aqui que acontece a Inversao de Controle (IoC):
+        // em vez de voce criar manualmente controller/service/repository com new,
+        // o Spring cria os objetos (beans), conecta as dependencias e administra o ciclo de vida.
+<span class="nc" id="L28">        SpringApplication.run(UsuarioApplication.class, args);</span>
+<span class="nc" id="L29">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

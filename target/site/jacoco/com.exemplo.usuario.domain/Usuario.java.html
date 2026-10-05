@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Usuario.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.domain</a> &gt; <span class="el_source">Usuario.java</span></div><h1>Usuario.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.domain;
+
+import com.exemplo.usuario.domain.vo.EmailUsuario;
+import com.exemplo.usuario.domain.vo.NomeUsuario;
+import com.exemplo.usuario.domain.vo.SenhaCriptografada;
+import jakarta.persistence.*;
+
+// Camada: DOMINIO.
+// Usuario e uma entidade do negocio.
+@Entity
+@Table(name = &quot;usuarios&quot;)
+public class Usuario {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Nome, e-mail e senha foram encapsulados como Value Objects.
+    @Embedded
+    private NomeUsuario nome;
+
+    @Embedded
+    private EmailUsuario email;
+
+    @Embedded
+    private SenhaCriptografada senha;
+
+    // Relacao 1:1 com Assinatura.
+    // mappedBy = a outra entidade (Assinatura) possui a FK.
+    // cascade = ALL faz persistencia em cascata.
+    // orphanRemoval = remove a assinatura se ela deixar de estar vinculada.
+    @OneToOne(mappedBy = &quot;usuario&quot;, cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Assinatura assinatura;
+
+    // Relacao 1:1 com Mensalidade, no mesmo padrao usado para Assinatura.
+    @OneToOne(mappedBy = &quot;usuario&quot;, cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Mensalidade mensalidade;
+
+    // Controle de acesso a plataforma.
+    // Diferente do Grupo_2: aqui a ausencia de mensalidade tambem bloqueia o acesso.
+<span class="pc" id="L41">    @Column(nullable = false)</span>
+    private boolean acessoAoCurso = false;
+
+<span class="pc" id="L44">    @Column(nullable = false)</span>
+    private boolean plataformaCongelada = false;
+
+<span class="nc" id="L47">    protected Usuario() {</span>
+<span class="nc" id="L48">    }</span>
+
+    // Construtor rico do dominio.
+    // Repare que a senha recebida aqui ja deve estar criptografada pela camada de service.
+<span class="fc" id="L52">    public Usuario(String nome, String email, String senhaCriptografada) {</span>
+<span class="fc" id="L53">        this.nome = new NomeUsuario(nome);</span>
+<span class="fc" id="L54">        this.email = new EmailUsuario(email);</span>
+<span class="fc" id="L55">        this.senha = new SenhaCriptografada(senhaCriptografada);</span>
+<span class="fc" id="L56">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L59">        return id;</span>
+    }
+
+    public String getNome() {
+<span class="fc" id="L63">        return nome.getValor();</span>
+    }
+
+    public String getEmail() {
+<span class="fc" id="L67">        return email.getValor();</span>
+    }
+
+    public String getSenha() {
+<span class="fc" id="L71">        return senha.getValor();</span>
+    }
+
+    public Assinatura getAssinatura() {
+<span class="fc" id="L75">        return assinatura;</span>
+    }
+
+    public Mensalidade getMensalidade() {
+<span class="fc" id="L79">        return mensalidade;</span>
+    }
+
+    public boolean temAcessoAoCurso() {
+<span class="fc" id="L83">        return acessoAoCurso;</span>
+    }
+
+    public boolean isPlataformaCongelada() {
+<span class="fc" id="L87">        return plataformaCongelada;</span>
+    }
+
+    // Alteracoes controladas do estado da entidade.
+    public void alterarNome(String nome) {
+<span class="nc" id="L92">        this.nome = new NomeUsuario(nome);</span>
+<span class="nc" id="L93">    }</span>
+
+    public void alterarEmail(String email) {
+<span class="nc" id="L96">        this.email = new EmailUsuario(email);</span>
+<span class="nc" id="L97">    }</span>
+
+    public void alterarSenhaCriptografada(String senhaCriptografada) {
+<span class="nc" id="L100">        this.senha = new SenhaCriptografada(senhaCriptografada);</span>
+<span class="nc" id="L101">    }</span>
+
+    // Mantem a consistencia da associacao bidirecional Usuario &lt;-&gt; Assinatura.
+    public void vincularAssinatura(Assinatura assinatura) {
+<span class="fc" id="L105">        this.assinatura = assinatura;</span>
+<span class="pc bpc" id="L106" title="2 of 4 branches missed.">        if (assinatura != null &amp;&amp; assinatura.getUsuario() != this) {</span>
+<span class="nc" id="L107">            assinatura.setUsuario(this);</span>
+        }
+<span class="fc" id="L109">    }</span>
+
+    // Mantem a consistencia da associacao bidirecional Usuario &lt;-&gt; Mensalidade.
+    public void vincularMensalidade(Mensalidade mensalidade) {
+<span class="fc" id="L113">        this.mensalidade = mensalidade;</span>
+<span class="pc bpc" id="L114" title="2 of 4 branches missed.">        if (mensalidade != null &amp;&amp; mensalidade.getUsuario() != this) {</span>
+<span class="nc" id="L115">            mensalidade.setUsuario(this);</span>
+        }
+<span class="fc" id="L117">    }</span>
+
+    // Metodo de dominio: valida o acesso do usuario a plataforma.
+    // Diferente do Grupo_2, aqui a ausencia de mensalidade tambem bloqueia o
+    // acesso: so ha liberacao quando existe uma mensalidade paga.
+    // Lanca excecao para impedir a operacao em andamento (ex.: uma matricula)
+    // quando o acesso estiver bloqueado.
+    public void validarAcessoPlataforma() {
+<span class="fc bfc" id="L125" title="All 4 branches covered.">        if (mensalidade == null || mensalidade.isPendente()) {</span>
+<span class="fc" id="L126">            this.acessoAoCurso = false;</span>
+<span class="fc" id="L127">            this.plataformaCongelada = true;</span>
+<span class="fc" id="L128">            throw new IllegalStateException(&quot;Mensalidade pendente ou inexistente: acesso a plataforma bloqueado para o usuario &quot; + getNome());</span>
+        }
+<span class="fc" id="L130">        this.acessoAoCurso = true;</span>
+<span class="fc" id="L131">        this.plataformaCongelada = false;</span>
+<span class="fc" id="L132">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

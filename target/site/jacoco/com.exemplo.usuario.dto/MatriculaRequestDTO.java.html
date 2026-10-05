@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatriculaRequestDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.dto</a> &gt; <span class="el_source">MatriculaRequestDTO.java</span></div><h1>MatriculaRequestDTO.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.dto;
+
+import jakarta.validation.constraints.NotNull;
+
+// DTO de entrada para criar matricula.
+public class MatriculaRequestDTO {
+
+    @NotNull(message = &quot;usuarioId e obrigatorio&quot;)
+    private Long usuarioId;
+
+    @NotNull(message = &quot;cursoId e obrigatorio&quot;)
+    private Long cursoId;
+
+    private boolean bonus;
+
+<span class="nc" id="L16">    public MatriculaRequestDTO() {</span>
+<span class="nc" id="L17">    }</span>
+
+    public Long getUsuarioId() {
+<span class="nc" id="L20">        return usuarioId;</span>
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+<span class="nc" id="L24">        this.usuarioId = usuarioId;</span>
+<span class="nc" id="L25">    }</span>
+
+    public Long getCursoId() {
+<span class="nc" id="L28">        return cursoId;</span>
+    }
+
+    public void setCursoId(Long cursoId) {
+<span class="nc" id="L32">        this.cursoId = cursoId;</span>
+<span class="nc" id="L33">    }</span>
+
+    public boolean isBonus() {
+<span class="nc" id="L36">        return bonus;</span>
+    }
+
+    public void setBonus(boolean bonus) {
+<span class="nc" id="L40">        this.bonus = bonus;</span>
+<span class="nc" id="L41">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

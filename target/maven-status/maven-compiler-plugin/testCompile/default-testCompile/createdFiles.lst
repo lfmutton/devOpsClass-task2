@@ -1,0 +1,6 @@
+com\exemplo\usuario\service\CursoServiceTest.class
+com\exemplo\usuario\domain\MatriculaTest.class
+com\exemplo\usuario\service\MensalidadeServiceTest.class
+com\exemplo\usuario\service\UsuarioServiceTest.class
+com\exemplo\usuario\domain\UsuarioMensalidadeTest.class
+com\exemplo\usuario\service\MatriculaServiceTest.class
