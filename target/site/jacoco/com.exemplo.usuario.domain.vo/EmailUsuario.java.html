@@ -4,48 +4,36 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 // Value Object responsavel por encapsular as regras do e-mail.
+// A validacao de formato fica em FormatoEmail.
 @Embeddable
 public class EmailUsuario {
-
-    // Pattern = expressao regular reutilizavel para validar formato do e-mail.
-<span class="fc" id="L14">    private static final Pattern EMAIL_PATTERN = Pattern.compile(&quot;^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$&quot;);</span>
 
     @Column(name = &quot;email&quot;, nullable = false, unique = true)
     private String valor;
 
-<span class="nc" id="L19">    protected EmailUsuario() {</span>
-<span class="nc" id="L20">    }</span>
+<span class="fc" id="L16">    protected EmailUsuario() {</span>
+<span class="fc" id="L17">    }</span>
 
-<span class="fc" id="L22">    public EmailUsuario(String valor) {</span>
-<span class="fc bfc" id="L23" title="All 2 branches covered.">        String normalizado = valor == null ? null : valor.trim().toLowerCase();</span>
-
-<span class="pc bpc" id="L25" title="1 of 4 branches missed.">        if (normalizado == null || normalizado.isBlank()) {</span>
-<span class="fc" id="L26">            throw new IllegalArgumentException(&quot;E-mail e obrigatorio&quot;);</span>
-        }
-<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        if (!EMAIL_PATTERN.matcher(normalizado).matches()) {</span>
-<span class="nc" id="L29">            throw new IllegalArgumentException(&quot;E-mail invalido&quot;);</span>
-        }
-
-<span class="fc" id="L32">        this.valor = normalizado;</span>
-<span class="fc" id="L33">    }</span>
+<span class="fc" id="L19">    public EmailUsuario(String valor) {</span>
+<span class="fc" id="L20">        String normalizado = Texto.obrigatorio(valor, &quot;E-mail e obrigatorio&quot;).toLowerCase();</span>
+<span class="fc" id="L21">        this.valor = FormatoEmail.validar(normalizado);</span>
+<span class="fc" id="L22">    }</span>
 
     public String getValor() {
-<span class="fc" id="L36">        return valor;</span>
+<span class="fc" id="L25">        return valor;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (this == o) return true;</span>
-<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (!(o instanceof EmailUsuario that)) return false;</span>
-<span class="nc" id="L43">        return Objects.equals(valor, that.valor);</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (!(o instanceof EmailUsuario that)) return false;</span>
+<span class="fc" id="L31">        return Objects.equals(valor, that.valor);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L48">        return Objects.hash(valor);</span>
+<span class="fc" id="L36">        return Objects.hash(valor);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

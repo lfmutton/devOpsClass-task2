@@ -22,47 +22,30 @@ public class Mensalidade {
     @JoinColumn(name = &quot;usuario_id&quot;, nullable = false, unique = true)
     private Usuario usuario;
 
-<span class="nc" id="L25">    public Mensalidade() {</span>
-<span class="nc" id="L26">    }</span>
+<span class="fc" id="L25">    protected Mensalidade() {</span>
+<span class="fc" id="L26">    }</span>
 
 <span class="fc" id="L28">    public Mensalidade(Usuario usuario, StatusMensalidade status) {</span>
 <span class="fc" id="L29">        this.usuario = usuario;</span>
 <span class="fc" id="L30">        this.status = status;</span>
 <span class="fc" id="L31">    }</span>
 
-    public Long getId() {
-<span class="nc" id="L34">        return id;</span>
-    }
-
     public StatusMensalidade getStatus() {
-<span class="fc" id="L38">        return status;</span>
+<span class="fc" id="L34">        return status;</span>
     }
 
     public Usuario getUsuario() {
-<span class="fc" id="L42">        return usuario;</span>
-    }
-
-    public void setUsuario(Usuario usuario) {
-<span class="nc" id="L46">        this.usuario = usuario;</span>
-<span class="nc" id="L47">    }</span>
-
-    // Metodo de dominio: verifica se a mensalidade esta pendente.
-    public boolean isPendente() {
-<span class="fc bfc" id="L51" title="All 2 branches covered.">        return status == StatusMensalidade.PENDENTE;</span>
+<span class="fc" id="L38">        return usuario;</span>
     }
 
     // Metodo de dominio: verifica se a mensalidade esta paga.
     public boolean isPaga() {
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        return status == StatusMensalidade.PAGA;</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">        return status == StatusMensalidade.PAGA;</span>
     }
 
-    // Metodos de dominio: alteram o estado de pagamento.
-    public void pagar() {
-<span class="fc" id="L61">        this.status = StatusMensalidade.PAGA;</span>
-<span class="fc" id="L62">    }</span>
-
-    public void marcarComoPendente() {
-<span class="fc" id="L65">        this.status = StatusMensalidade.PENDENTE;</span>
-<span class="fc" id="L66">    }</span>
+    // Metodo de dominio: altera o estado de pagamento (PAGA ou PENDENTE).
+    public void alterarStatus(StatusMensalidade novoStatus) {
+<span class="fc" id="L48">        this.status = novoStatus;</span>
+<span class="fc" id="L49">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

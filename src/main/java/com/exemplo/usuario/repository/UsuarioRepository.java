@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 // Repository de Usuario.
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-    // Como EmailUsuario e um Value Object embutido, o Spring Data consegue navegar ate email.valor.
-    boolean existsByEmailValor(String email);
+    // EmailUsuario e um Value Object embutido dentro de PerfilUsuario,
+    // entao o Spring Data navega ate perfil.email.valor.
+    boolean existsByPerfilEmailValor(String email);
 }

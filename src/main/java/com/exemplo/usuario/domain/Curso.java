@@ -44,13 +44,4 @@ public class Curso {
     public String getDescricao() {
         return descricao != null ? descricao.getValor() : null;
     }
-
-    // Metodos de alteracao controlada do dominio.
-    public void alterarTitulo(String titulo) {
-        this.titulo = new TituloCurso(titulo);
-    }
-
-    public void alterarDescricao(String descricao) {
-        this.descricao = new DescricaoCurso(descricao);
-    }
 }

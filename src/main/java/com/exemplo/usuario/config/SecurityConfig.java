@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -24,7 +26,7 @@ public class SecurityConfig {
             // csrf() configura protecao CSRF.
             // Para APIs REST didaticas/testes, costuma-se desabilitar.
             // Em producao, isso deve ser analisado com cuidado.
-            .csrf(csrf -> csrf.disable())
+            .csrf(AbstractHttpConfigurer::disable)
 
             // authorizeHttpRequests() define quem pode acessar cada rota.
             .authorizeHttpRequests(auth -> auth
@@ -45,7 +47,7 @@ public class SecurityConfig {
                 .anyRequest().permitAll())
 
             // frameOptions() foi liberado para o console H2 funcionar no navegador.
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+            .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
 
             // httpBasic() ativa autenticacao HTTP Basic.
             // E um modo simples e bem didatico para testes com Postman, Insomnia e Swagger.

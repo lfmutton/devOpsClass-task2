@@ -23,48 +23,28 @@ public class MensalidadeService {
     @Transactional
     public UsuarioResponseDTO atualizarStatus(Long usuarioId, MensalidadeRequestDTO dto) {
 <span class="fc" id="L25">        Usuario usuario = usuarioRepository.findById(usuarioId)</span>
-<span class="fc" id="L26">                .orElseThrow(() -&gt; new RuntimeException(&quot;Usuario nao encontrado&quot;));</span>
+<span class="fc" id="L26">                .orElseThrow(RecursoNaoEncontradoException.com(&quot;Usuario nao encontrado&quot;));</span>
 
 <span class="fc" id="L28">        StatusMensalidade status = StatusMensalidade.valueOf(dto.getStatus().trim().toUpperCase());</span>
 
-<span class="fc" id="L30">        Mensalidade mensalidade = usuario.getMensalidade();</span>
+<span class="fc" id="L30">        Mensalidade mensalidade = usuario.getAcesso().getMensalidade();</span>
 <span class="fc bfc" id="L31" title="All 2 branches covered.">        if (mensalidade == null) {</span>
-<span class="fc" id="L32">            mensalidade = new Mensalidade(usuario, status);</span>
-<span class="fc" id="L33">            usuario.vincularMensalidade(mensalidade);</span>
-<span class="fc bfc" id="L34" title="All 2 branches covered.">        } else if (status == StatusMensalidade.PAGA) {</span>
-<span class="fc" id="L35">            mensalidade.pagar();</span>
+<span class="fc" id="L32">            usuario.getAcesso().vincularMensalidade(new Mensalidade(usuario, status));</span>
         } else {
-<span class="fc" id="L37">            mensalidade.marcarComoPendente();</span>
+<span class="fc" id="L34">            mensalidade.alterarStatus(status);</span>
         }
 
         // Reavalia o acesso a plataforma imediatamente apos a mudanca de status.
         // Se ficar bloqueado, a excecao e apenas o sinal de que o estado foi
         // atualizado; o usuario continua sendo persistido com as flags corretas.
         try {
-<span class="fc" id="L44">            usuario.validarAcessoPlataforma();</span>
-<span class="fc" id="L45">        } catch (IllegalStateException ignored) {</span>
+<span class="fc" id="L41">            usuario.validarAcessoPlataforma();</span>
+<span class="fc" id="L42">        } catch (IllegalStateException ignored) {</span>
             // Estado ja registrado em usuario (acessoAoCurso=false, plataformaCongelada=true).
-<span class="fc" id="L47">        }</span>
+<span class="fc" id="L44">        }</span>
 
-<span class="fc" id="L49">        Usuario salvo = usuarioRepository.save(usuario);</span>
-<span class="fc" id="L50">        return toDTO(salvo);</span>
-    }
-
-    private UsuarioResponseDTO toDTO(Usuario usuario) {
-<span class="fc" id="L54">        var assinatura = usuario.getAssinatura();</span>
-<span class="fc" id="L55">        var mensalidade = usuario.getMensalidade();</span>
-<span class="fc" id="L56">        return new UsuarioResponseDTO(</span>
-<span class="fc" id="L57">                usuario.getId(),</span>
-<span class="fc" id="L58">                usuario.getNome(),</span>
-<span class="fc" id="L59">                usuario.getEmail(),</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">                assinatura != null ? assinatura.getPlano().name() : null,</span>
-<span class="fc bfc" id="L61" title="All 2 branches covered.">                assinatura != null ? assinatura.getCreditosCursos() : null,</span>
-<span class="fc bfc" id="L62" title="All 2 branches covered.">                assinatura != null ? assinatura.getCursosConcluidosComSucesso() : null,</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">                assinatura != null ? assinatura.getMoedas() : null,</span>
-<span class="pc bpc" id="L64" title="1 of 2 branches missed.">                mensalidade != null ? mensalidade.getStatus().name() : null,</span>
-<span class="fc" id="L65">                usuario.temAcessoAoCurso(),</span>
-<span class="fc" id="L66">                usuario.isPlataformaCongelada()</span>
-        );
+<span class="fc" id="L46">        Usuario salvo = usuarioRepository.save(usuario);</span>
+<span class="fc" id="L47">        return UsuarioResponseDTO.de(salvo);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

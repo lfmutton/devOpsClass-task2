@@ -12,31 +12,26 @@ public class NomeUsuario {
     @Column(name = &quot;nome&quot;, nullable = false)
     private String valor;
 
-<span class="nc" id="L15">    protected NomeUsuario() {</span>
-<span class="nc" id="L16">    }</span>
+<span class="fc" id="L15">    protected NomeUsuario() {</span>
+<span class="fc" id="L16">    }</span>
 
 <span class="fc" id="L18">    public NomeUsuario(String valor) {</span>
-<span class="pc bpc" id="L19" title="1 of 2 branches missed.">        String normalizado = valor == null ? null : valor.trim();</span>
-<span class="pc bpc" id="L20" title="2 of 4 branches missed.">        if (normalizado == null || normalizado.isBlank()) {</span>
-<span class="nc" id="L21">            throw new IllegalArgumentException(&quot;Nome e obrigatorio&quot;);</span>
-        }
-<span class="fc" id="L23">        this.valor = normalizado;</span>
-<span class="fc" id="L24">    }</span>
+<span class="fc" id="L19">        this.valor = Texto.obrigatorio(valor, &quot;Nome e obrigatorio&quot;);</span>
+<span class="fc" id="L20">    }</span>
 
     public String getValor() {
-<span class="fc" id="L27">        return valor;</span>
+<span class="fc" id="L23">        return valor;</span>
     }
 
     @Override
     public boolean equals(Object o) {
-<span class="nc bnc" id="L32" title="All 2 branches missed.">        if (this == o) return true;</span>
-<span class="nc bnc" id="L33" title="All 2 branches missed.">        if (!(o instanceof NomeUsuario that)) return false;</span>
-<span class="nc" id="L34">        return Objects.equals(valor, that.valor);</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (!(o instanceof NomeUsuario that)) return false;</span>
+<span class="fc" id="L29">        return Objects.equals(valor, that.valor);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L39">        return Objects.hash(valor);</span>
+<span class="fc" id="L34">        return Objects.hash(valor);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AcessoPlataforma.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.domain</a> &gt; <span class="el_source">AcessoPlataforma.java</span></div><h1>AcessoPlataforma.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.domain;
+
+import jakarta.persistence.*;
+
+import java.util.Optional;
+
+// Camada: DOMINIO.
+// Parte embutida de Usuario que controla o acesso a plataforma.
+// Reune a mensalidade e as flags derivadas dela, porque uma depende da outra.
+// As colunas continuam na tabela &quot;usuarios&quot; (acesso_ao_curso, plataforma_congelada).
+@Embeddable
+<span class="fc" id="L12">public class AcessoPlataforma {</span>
+
+    // Relacao 1:1 com Mensalidade.
+    // mappedBy = a outra entidade (Mensalidade) possui a FK.
+    @OneToOne(mappedBy = &quot;usuario&quot;, cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Mensalidade mensalidade;
+
+    // Diferente do Grupo_2: aqui a ausencia de mensalidade tambem bloqueia o acesso.
+<span class="fc" id="L20">    @Column(nullable = false)</span>
+    private boolean acessoAoCurso = false;
+
+<span class="fc" id="L23">    @Column(nullable = false)</span>
+    private boolean plataformaCongelada = false;
+
+    public Mensalidade getMensalidade() {
+<span class="fc" id="L27">        return mensalidade;</span>
+    }
+
+    public void vincularMensalidade(Mensalidade mensalidade) {
+<span class="fc" id="L31">        this.mensalidade = mensalidade;</span>
+<span class="fc" id="L32">    }</span>
+
+    public boolean temAcessoAoCurso() {
+<span class="fc" id="L35">        return acessoAoCurso;</span>
+    }
+
+    public boolean isPlataformaCongelada() {
+<span class="fc" id="L39">        return plataformaCongelada;</span>
+    }
+
+    // So ha liberacao quando existe uma mensalidade paga.
+    // Lanca excecao para impedir a operacao em andamento (ex.: uma matricula)
+    // quando o acesso estiver bloqueado.
+    public void validar(String nomeUsuario) {
+<span class="fc" id="L46">        boolean mensalidadePaga = Optional.ofNullable(mensalidade).map(Mensalidade::isPaga).orElse(false);</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (!mensalidadePaga) {</span>
+<span class="fc" id="L48">            this.acessoAoCurso = false;</span>
+<span class="fc" id="L49">            this.plataformaCongelada = true;</span>
+<span class="fc" id="L50">            throw new IllegalStateException(&quot;Mensalidade pendente ou inexistente: acesso a plataforma bloqueado para o usuario &quot; + nomeUsuario);</span>
+        }
+<span class="fc" id="L52">        this.acessoAoCurso = true;</span>
+<span class="fc" id="L53">        this.plataformaCongelada = false;</span>
+<span class="fc" id="L54">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

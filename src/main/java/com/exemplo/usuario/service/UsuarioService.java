@@ -1,9 +1,9 @@
 package com.exemplo.usuario.service;
 
-import com.exemplo.usuario.domain.Assinatura;
 import com.exemplo.usuario.domain.Mensalidade;
 import com.exemplo.usuario.domain.StatusMensalidade;
 import com.exemplo.usuario.domain.Usuario;
+import com.exemplo.usuario.domain.vo.EmailUsuario;
 import com.exemplo.usuario.dto.UsuarioRequestDTO;
 import com.exemplo.usuario.dto.UsuarioResponseDTO;
 import com.exemplo.usuario.repository.UsuarioRepository;
@@ -30,22 +30,23 @@ public class UsuarioService {
     }
 
     public List<UsuarioResponseDTO> listarTodos() {
-        return repository.findAll().stream().map(this::toDTO).toList();
+        return repository.findAll().stream().map(UsuarioResponseDTO::de).toList();
     }
 
     public UsuarioResponseDTO buscarPorId(Long id) {
         Usuario usuario = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
-        return toDTO(usuario);
+                .orElseThrow(RecursoNaoEncontradoException.com("Usuario nao encontrado"));
+        return UsuarioResponseDTO.de(usuario);
     }
 
     @Transactional
     public UsuarioResponseDTO criar(UsuarioRequestDTO dto) {
         // A camada service costuma preparar/normalizar dados para a regra de negocio.
-        String emailNormalizado = dto.getEmail() == null ? null : dto.getEmail().trim().toLowerCase();
+        // O Value Object EmailUsuario valida e normaliza (trim + minusculas).
+        String emailNormalizado = new EmailUsuario(dto.getEmail()).getValor();
 
         // Valida regra de unicidade antes de persistir.
-        if (repository.existsByEmailValor(emailNormalizado)) {
+        if (repository.existsByPerfilEmailValor(emailNormalizado)) {
             throw new RuntimeException("E-mail ja cadastrado");
         }
 
@@ -57,35 +58,14 @@ public class UsuarioService {
                 emailNormalizado,
                 passwordEncoder.encode(dto.getSenha())
         );
-
-        // Cria a assinatura padrao e vincula ao usuario.
-        Assinatura assinatura = new Assinatura(usuario);
-        usuario.vincularAssinatura(assinatura);
+        // A assinatura padrao (BASICO) ja e criada pelo construtor de Usuario.
 
         // Cria a mensalidade ja paga e vincula ao usuario, liberando o acesso
         // a plataforma desde o cadastro.
-        Mensalidade mensalidade = new Mensalidade(usuario, StatusMensalidade.PAGA);
-        usuario.vincularMensalidade(mensalidade);
+        usuario.getAcesso().vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
         usuario.validarAcessoPlataforma();
 
         Usuario salvo = repository.save(usuario);
-        return toDTO(salvo);
-    }
-
-    private UsuarioResponseDTO toDTO(Usuario usuario) {
-        var assinatura = usuario.getAssinatura();
-        var mensalidade = usuario.getMensalidade();
-        return new UsuarioResponseDTO(
-                usuario.getId(),
-                usuario.getNome(),
-                usuario.getEmail(),
-                assinatura != null ? assinatura.getPlano().name() : null,
-                assinatura != null ? assinatura.getCreditosCursos() : null,
-                assinatura != null ? assinatura.getCursosConcluidosComSucesso() : null,
-                assinatura != null ? assinatura.getMoedas() : null,
-                mensalidade != null ? mensalidade.getStatus().name() : null,
-                usuario.temAcessoAoCurso(),
-                usuario.isPlataformaCongelada()
-        );
+        return UsuarioResponseDTO.de(salvo);
     }
 }

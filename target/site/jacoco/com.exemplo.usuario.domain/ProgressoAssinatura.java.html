@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProgressoAssinatura.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.domain</a> &gt; <span class="el_source">ProgressoAssinatura.java</span></div><h1>ProgressoAssinatura.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.domain;
+
+import jakarta.persistence.*;
+
+// Camada: DOMINIO.
+// Parte embutida de Assinatura que guarda o plano e as conclusoes do usuario.
+// As colunas continuam na tabela &quot;assinaturas&quot; (plano, cursos_concluidos_com_sucesso).
+@Embeddable
+<span class="fc" id="L9">public class ProgressoAssinatura {</span>
+
+    private static final int CONCLUSOES_PARA_PREMIUM = 12;
+
+    // @Enumerated(EnumType.STRING) grava o nome do enum no banco.
+    // Todo novo usuario nasce no plano BASICO.
+<span class="fc" id="L15">    @Enumerated(EnumType.STRING)</span>
+    @Column(nullable = false)
+    private PlanoAssinatura plano = PlanoAssinatura.BASICO;
+
+<span class="fc" id="L19">    @Column(nullable = false)</span>
+<span class="fc" id="L20">    private Integer cursosConcluidosComSucesso = 0;</span>
+
+    public PlanoAssinatura getPlano() {
+<span class="fc" id="L23">        return plano;</span>
+    }
+
+    public Integer getCursosConcluidosComSucesso() {
+<span class="fc" id="L27">        return cursosConcluidosComSucesso;</span>
+    }
+
+    // Soma uma conclusao e promove para PREMIUM ao atingir 12 conclusoes.
+    public void registrarConclusao() {
+<span class="fc" id="L32">        this.cursosConcluidosComSucesso++;</span>
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (this.cursosConcluidosComSucesso &gt;= CONCLUSOES_PARA_PREMIUM) {</span>
+<span class="fc" id="L34">            this.plano = PlanoAssinatura.PREMIUM;</span>
+        }
+<span class="fc" id="L36">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

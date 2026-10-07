@@ -22,8 +22,8 @@ public class Curso {
     private DescricaoCurso descricao;
 
     // protected e suficiente para o JPA e evita uso indevido fora do dominio.
-<span class="nc" id="L25">    protected Curso() {</span>
-<span class="nc" id="L26">    }</span>
+<span class="fc" id="L25">    protected Curso() {</span>
+<span class="fc" id="L26">    }</span>
 
     // Construtor rico: delega validacao dos atributos para os Value Objects.
 <span class="fc" id="L29">    public Curso(String titulo, String descricao) {</span>
@@ -42,16 +42,7 @@ public class Curso {
     }
 
     public String getDescricao() {
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        return descricao != null ? descricao.getValor() : null;</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        return descricao != null ? descricao.getValor() : null;</span>
     }
-
-    // Metodos de alteracao controlada do dominio.
-    public void alterarTitulo(String titulo) {
-<span class="nc" id="L50">        this.titulo = new TituloCurso(titulo);</span>
-<span class="nc" id="L51">    }</span>
-
-    public void alterarDescricao(String descricao) {
-<span class="nc" id="L54">        this.descricao = new DescricaoCurso(descricao);</span>
-<span class="nc" id="L55">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

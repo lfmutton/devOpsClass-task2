@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,58 +16,58 @@ import org.springframework.security.web.SecurityFilterChain;
 // Camada: CONFIGURACAO.
 // Esta classe configura como a seguranca da aplicacao vai funcionar.
 @Configuration
-<span class="nc" id="L17">public class SecurityConfig {</span>
+<span class="nc" id="L19">public class SecurityConfig {</span>
 
     // SecurityFilterChain e a cadeia de filtros do Spring Security.
     // Pense nela como um &quot;porteiro&quot; que intercepta as requisicoes HTTP.
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-<span class="nc" id="L23">        http</span>
+<span class="nc" id="L25">        http</span>
             // csrf() configura protecao CSRF.
             // Para APIs REST didaticas/testes, costuma-se desabilitar.
             // Em producao, isso deve ser analisado com cuidado.
-<span class="nc" id="L27">            .csrf(csrf -&gt; csrf.disable())</span>
+<span class="nc" id="L29">            .csrf(AbstractHttpConfigurer::disable)</span>
 
             // authorizeHttpRequests() define quem pode acessar cada rota.
-<span class="nc" id="L30">            .authorizeHttpRequests(auth -&gt; auth</span>
+<span class="nc" id="L32">            .authorizeHttpRequests(auth -&gt; auth</span>
                 // requestMatchers(...) lista rotas especificas.
                 // permitAll() = qualquer pessoa pode acessar, sem login.
-<span class="nc" id="L33">                .requestMatchers(</span>
+<span class="nc" id="L35">                .requestMatchers(</span>
                     &quot;/&quot;, &quot;/index.html&quot;, &quot;/home&quot;,
                     &quot;/css/**&quot;, &quot;/js/**&quot;,
                     &quot;/swagger-ui/**&quot;, &quot;/swagger-ui.html&quot;, &quot;/v3/api-docs/**&quot;,
                     &quot;/h2-console/**&quot;
-<span class="nc" id="L38">                ).permitAll()</span>
+<span class="nc" id="L40">                ).permitAll()</span>
 
                 // authenticated() = exige autenticacao.
                 // Aqui estamos protegendo as rotas REST principais.
-<span class="nc" id="L42">                .requestMatchers(&quot;/api/**&quot;).authenticated()</span>
+<span class="nc" id="L44">                .requestMatchers(&quot;/api/**&quot;).authenticated()</span>
 
                 // anyRequest() pega o que nao foi coberto acima.
-<span class="nc" id="L45">                .anyRequest().permitAll())</span>
+<span class="nc" id="L47">                .anyRequest().permitAll())</span>
 
             // frameOptions() foi liberado para o console H2 funcionar no navegador.
-<span class="nc" id="L48">            .headers(headers -&gt; headers.frameOptions(frame -&gt; frame.disable()))</span>
+<span class="nc" id="L50">            .headers(headers -&gt; headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))</span>
 
             // httpBasic() ativa autenticacao HTTP Basic.
             // E um modo simples e bem didatico para testes com Postman, Insomnia e Swagger.
-<span class="nc" id="L52">            .httpBasic(Customizer.withDefaults());</span>
+<span class="nc" id="L54">            .httpBasic(Customizer.withDefaults());</span>
 
         // build() monta o objeto final da configuracao de seguranca.
-<span class="nc" id="L55">        return http.build();</span>
+<span class="nc" id="L57">        return http.build();</span>
     }
 
     // UserDetailsService e o servico que fornece usuarios para autenticacao.
     // Nesta versao, usamos um usuario em memoria, sem tabela no banco.
     @Bean
     public UserDetailsService users(PasswordEncoder passwordEncoder) {
-<span class="nc" id="L62">        return new InMemoryUserDetailsManager(</span>
+<span class="nc" id="L64">        return new InMemoryUserDetailsManager(</span>
             // User.withUsername(...) cria um usuario de forma fluente.
-<span class="nc" id="L64">            User.withUsername(&quot;admin&quot;)</span>
+<span class="nc" id="L66">            User.withUsername(&quot;admin&quot;)</span>
                 // encode(...) criptografa a senha antes de armazenar.
-<span class="nc" id="L66">                .password(passwordEncoder.encode(&quot;123456&quot;))</span>
-<span class="nc" id="L67">                .roles(&quot;ADMIN&quot;)</span>
-<span class="nc" id="L68">                .build()</span>
+<span class="nc" id="L68">                .password(passwordEncoder.encode(&quot;123456&quot;))</span>
+<span class="nc" id="L69">                .roles(&quot;ADMIN&quot;)</span>
+<span class="nc" id="L70">                .build()</span>
         );
     }
 
@@ -77,7 +79,7 @@ import org.springframework.security.web.SecurityFilterChain;
     @Bean
     public PasswordEncoder passwordEncoder() {
         // BCryptPasswordEncoder e uma implementacao segura para hash de senha.
-<span class="nc" id="L80">        return new BCryptPasswordEncoder();</span>
+<span class="nc" id="L82">        return new BCryptPasswordEncoder();</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -23,18 +23,15 @@ public class MensalidadeService {
     @Transactional
     public UsuarioResponseDTO atualizarStatus(Long usuarioId, MensalidadeRequestDTO dto) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuario nao encontrado"));
+                .orElseThrow(RecursoNaoEncontradoException.com("Usuario nao encontrado"));
 
         StatusMensalidade status = StatusMensalidade.valueOf(dto.getStatus().trim().toUpperCase());
 
-        Mensalidade mensalidade = usuario.getMensalidade();
+        Mensalidade mensalidade = usuario.getAcesso().getMensalidade();
         if (mensalidade == null) {
-            mensalidade = new Mensalidade(usuario, status);
-            usuario.vincularMensalidade(mensalidade);
-        } else if (status == StatusMensalidade.PAGA) {
-            mensalidade.pagar();
+            usuario.getAcesso().vincularMensalidade(new Mensalidade(usuario, status));
         } else {
-            mensalidade.marcarComoPendente();
+            mensalidade.alterarStatus(status);
         }
 
         // Reavalia o acesso a plataforma imediatamente apos a mudanca de status.
@@ -47,23 +44,6 @@ public class MensalidadeService {
         }
 
         Usuario salvo = usuarioRepository.save(usuario);
-        return toDTO(salvo);
-    }
-
-    private UsuarioResponseDTO toDTO(Usuario usuario) {
-        var assinatura = usuario.getAssinatura();
-        var mensalidade = usuario.getMensalidade();
-        return new UsuarioResponseDTO(
-                usuario.getId(),
-                usuario.getNome(),
-                usuario.getEmail(),
-                assinatura != null ? assinatura.getPlano().name() : null,
-                assinatura != null ? assinatura.getCreditosCursos() : null,
-                assinatura != null ? assinatura.getCursosConcluidosComSucesso() : null,
-                assinatura != null ? assinatura.getMoedas() : null,
-                mensalidade != null ? mensalidade.getStatus().name() : null,
-                usuario.temAcessoAoCurso(),
-                usuario.isPlataformaCongelada()
-        );
+        return UsuarioResponseDTO.de(salvo);
     }
 }

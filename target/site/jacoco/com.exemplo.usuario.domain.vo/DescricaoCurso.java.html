@@ -13,12 +13,12 @@ public class DescricaoCurso {
     @Column(name = &quot;descricao&quot;, length = 1000)
     private String valor;
 
-<span class="nc" id="L16">    protected DescricaoCurso() {</span>
-<span class="nc" id="L17">    }</span>
+<span class="fc" id="L16">    protected DescricaoCurso() {</span>
+<span class="fc" id="L17">    }</span>
 
 <span class="fc" id="L19">    public DescricaoCurso(String valor) {</span>
         // Aqui aceitamos null, pois a descricao foi modelada como opcional.
-<span class="fc bfc" id="L21" title="All 2 branches covered.">        this.valor = valor == null ? null : valor.trim();</span>
+<span class="fc" id="L21">        this.valor = Texto.opcional(valor);</span>
 <span class="fc" id="L22">    }</span>
 
     public String getValor() {
@@ -28,14 +28,13 @@ public class DescricaoCurso {
     // Em Value Object, equals/hashCode normalmente comparam o valor interno.
     @Override
     public boolean equals(Object o) {
-<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (this == o) return true;</span>
-<span class="nc bnc" id="L32" title="All 2 branches missed.">        if (!(o instanceof DescricaoCurso that)) return false;</span>
-<span class="nc" id="L33">        return Objects.equals(valor, that.valor);</span>
+<span class="fc bfc" id="L31" title="All 2 branches covered.">        if (!(o instanceof DescricaoCurso that)) return false;</span>
+<span class="fc" id="L32">        return Objects.equals(valor, that.valor);</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L38">        return Objects.hash(valor);</span>
+<span class="fc" id="L37">        return Objects.hash(valor);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

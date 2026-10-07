@@ -18,7 +18,7 @@ public class DescricaoCurso {
 
     public DescricaoCurso(String valor) {
         // Aqui aceitamos null, pois a descricao foi modelada como opcional.
-        this.valor = valor == null ? null : valor.trim();
+        this.valor = Texto.opcional(valor);
     }
 
     public String getValor() {
@@ -28,7 +28,6 @@ public class DescricaoCurso {
     // Em Value Object, equals/hashCode normalmente comparam o valor interno.
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (!(o instanceof DescricaoCurso that)) return false;
         return Objects.equals(valor, that.valor);
     }

@@ -8,6 +8,24 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>usuario-api-v2</name>
     <description>Evolucao didatica com Usuario, Assinatura, Curso e Matricula</description>
+    <url>https://github.com/lfmutton/devOpsClass-task2</url>
+
+    <scm>
+        <url>https://github.com/lfmutton/devOpsClass-task2</url>
+        <connection>scm:git:https://github.com/lfmutton/devOpsClass-task2.git</connection>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/lfmutton/devOpsClass-task2/issues</url>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <id>lfmutton</id>
+            <name>Luis Mutton</name>
+        </developer>
+    </developers>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -92,4 +110,22 @@
             </plugin>
         </plugins>
     </build>
+
+    <!-- Inclui o relatorio do JaCoCo no site do Maven (mvn clean test site). -->
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>

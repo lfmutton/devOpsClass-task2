@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.exemplo.usuario.service.CursoServiceTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.394 s -- in com.exemplo.usuario.service.CursoServiceTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.245 s -- in com.exemplo.usuario.service.CursoServiceTest

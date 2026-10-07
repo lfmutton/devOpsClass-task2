@@ -4,6 +4,14 @@
 <span class="fc" id="L4">public enum StatusMatricula {</span>
 <span class="fc" id="L5">    EM_ANDAMENTO,</span>
 <span class="fc" id="L6">    CONCLUIDO,</span>
-<span class="fc" id="L7">    CANCELADO</span>
+<span class="fc" id="L7">    CANCELADO;</span>
+
+    // Transicao de estado: uma matricula so pode ser concluida uma vez.
+    public StatusMatricula concluir() {
+<span class="fc bfc" id="L11" title="All 2 branches covered.">        if (this == CONCLUIDO) {</span>
+<span class="fc" id="L12">            throw new IllegalStateException(&quot;Matricula ja concluida&quot;);</span>
+        }
+<span class="fc" id="L14">        return CONCLUIDO;</span>
+    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

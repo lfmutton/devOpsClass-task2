@@ -1,61 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MatriculaResponseDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.dto</a> &gt; <span class="el_source">MatriculaResponseDTO.java</span></div><h1>MatriculaResponseDTO.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.dto;
 
+import com.exemplo.usuario.domain.Matricula;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 // DTO de saida para devolver os dados da matricula ao cliente.
-public class MatriculaResponseDTO {
-    private Long id;
-    private Long usuarioId;
-    private String usuarioNome;
-    private Long cursoId;
-    private String cursoTitulo;
-    private String status;
-    private Double notaFinal;
-    private boolean bonus;
+// @JsonUnwrapped &quot;achata&quot; as partes no JSON, mantendo o formato que o frontend usa:
+// { id, usuarioId, usuarioNome, cursoId, cursoTitulo, status, notaFinal, bonus }
+<span class="fc" id="L9">public record MatriculaResponseDTO(</span>
+        Long id,
+        @JsonUnwrapped AlunoCursoResponseDTO alunoCurso,
+        @JsonUnwrapped SituacaoMatriculaResponseDTO situacao) {
 
-<span class="nc" id="L14">    public MatriculaResponseDTO() {</span>
-<span class="nc" id="L15">    }</span>
-
-    public MatriculaResponseDTO(Long id, Long usuarioId, String usuarioNome, Long cursoId, String cursoTitulo,
-<span class="fc" id="L18">                                String status, Double notaFinal, boolean bonus) {</span>
-<span class="fc" id="L19">        this.id = id;</span>
-<span class="fc" id="L20">        this.usuarioId = usuarioId;</span>
-<span class="fc" id="L21">        this.usuarioNome = usuarioNome;</span>
-<span class="fc" id="L22">        this.cursoId = cursoId;</span>
-<span class="fc" id="L23">        this.cursoTitulo = cursoTitulo;</span>
-<span class="fc" id="L24">        this.status = status;</span>
-<span class="fc" id="L25">        this.notaFinal = notaFinal;</span>
-<span class="fc" id="L26">        this.bonus = bonus;</span>
-<span class="fc" id="L27">    }</span>
-
-    public Long getId() {
-<span class="nc" id="L30">        return id;</span>
-    }
-
-    public Long getUsuarioId() {
-<span class="nc" id="L34">        return usuarioId;</span>
-    }
-
-    public String getUsuarioNome() {
-<span class="fc" id="L38">        return usuarioNome;</span>
-    }
-
-    public Long getCursoId() {
-<span class="nc" id="L42">        return cursoId;</span>
-    }
-
-    public String getCursoTitulo() {
-<span class="fc" id="L46">        return cursoTitulo;</span>
-    }
-
-    public String getStatus() {
-<span class="fc" id="L50">        return status;</span>
-    }
-
-    public Double getNotaFinal() {
-<span class="fc" id="L54">        return notaFinal;</span>
-    }
-
-    public boolean isBonus() {
-<span class="fc" id="L58">        return bonus;</span>
+    public static MatriculaResponseDTO de(Matricula matricula) {
+<span class="fc" id="L15">        return new MatriculaResponseDTO(</span>
+<span class="fc" id="L16">                matricula.getId(),</span>
+<span class="fc" id="L17">                AlunoCursoResponseDTO.de(matricula),</span>
+<span class="fc" id="L18">                SituacaoMatriculaResponseDTO.de(matricula)</span>
+        );
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

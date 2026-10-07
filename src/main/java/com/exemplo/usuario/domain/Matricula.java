@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 // Camada: DOMINIO.
 // Matricula liga Usuario e Curso.
+// O ciclo de vida (status e nota) fica em SituacaoMatricula.
 @Entity
 @Table(name = "matriculas")
 public class Matricula {
@@ -20,25 +21,19 @@ public class Matricula {
     @JoinColumn(name = "curso_id")
     private Curso curso;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private StatusMatricula status;
-
-    @Column
-    private Double notaFinal;
+    @Embedded
+    private SituacaoMatricula situacao = new SituacaoMatricula();
 
     @Column(nullable = false)
     private boolean bonus;
 
-    public Matricula() {
+    protected Matricula() {
     }
 
-    // Toda nova matricula nasce EM_ANDAMENTO.
     public Matricula(Usuario usuario, Curso curso, boolean bonus) {
         this.usuario = usuario;
         this.curso = curso;
         this.bonus = bonus;
-        this.status = StatusMatricula.EM_ANDAMENTO;
     }
 
     public Long getId() {
@@ -53,42 +48,11 @@ public class Matricula {
         return curso;
     }
 
-    public StatusMatricula getStatus() {
-        return status;
-    }
-
-    public Double getNotaFinal() {
-        return notaFinal;
+    public SituacaoMatricula getSituacao() {
+        return situacao;
     }
 
     public boolean isBonus() {
         return bonus;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    public void setCurso(Curso curso) {
-        this.curso = curso;
-    }
-
-    public void setStatus(StatusMatricula status) {
-        this.status = status;
-    }
-
-    public void setNotaFinal(Double notaFinal) {
-        this.notaFinal = notaFinal;
-    }
-
-    public void setBonus(boolean bonus) {
-        this.bonus = bonus;
-    }
-
-    // Metodo de dominio que encapsula a regra de liberacao de creditos.
-    public boolean deveLiberarCreditos() {
-        return StatusMatricula.CONCLUIDO.equals(this.status)
-                && this.notaFinal != null
-                && this.notaFinal >= 7.0;
     }
 }

@@ -1,6 +1,5 @@
 package com.exemplo.usuario.service;
 
-import com.exemplo.usuario.domain.Assinatura;
 import com.exemplo.usuario.domain.Mensalidade;
 import com.exemplo.usuario.domain.StatusMensalidade;
 import com.exemplo.usuario.domain.Usuario;
@@ -17,7 +16,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -47,8 +45,7 @@ class MensalidadeServiceTest {
 
     private Usuario usuarioComMensalidade(StatusMensalidade status) {
         var usuario = new Usuario("Fulano", "fulano@teste.com", "hash");
-        usuario.vincularAssinatura(new Assinatura(usuario));
-        usuario.vincularMensalidade(new Mensalidade(usuario, status));
+        usuario.getAcesso().vincularMensalidade(new Mensalidade(usuario, status));
         return usuario;
     }
 
@@ -62,7 +59,7 @@ class MensalidadeServiceTest {
         when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
 
         // QUANDO / ENTAO
-        var ex = assertThrows(RuntimeException.class, () -> service.atualizarStatus(99L, request("PAGA")));
+        var ex = assertThrows(RecursoNaoEncontradoException.class, () -> service.atualizarStatus(99L, request("PAGA")));
         assertEquals("Usuario nao encontrado", ex.getMessage());
         verify(usuarioRepository, never()).save(any());
     }
@@ -81,7 +78,6 @@ class MensalidadeServiceTest {
     @Test
     void deveCriarMensalidadePagaQuandoUsuarioNaoTinhaMensalidade() {
         // DADO
-        // Usuario sem assinatura nem mensalidade: os campos de assinatura no DTO ficam nulos.
         var usuario = new Usuario("Fulano", "fulano@teste.com", "hash");
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         salvarDevolveOProprioUsuario();
@@ -91,13 +87,11 @@ class MensalidadeServiceTest {
         var resultado = service.atualizarStatus(1L, request("  paga "));
 
         // ENTAO
-        assertNotNull(usuario.getMensalidade());
-        assertSame(usuario, usuario.getMensalidade().getUsuario());
-        assertEquals("PAGA", resultado.getStatusMensalidade());
-        assertTrue(resultado.isTemAcessoAoCurso());
-        assertFalse(resultado.isPlataformaCongelada());
-        assertNull(resultado.getPlano());
-        assertNull(resultado.getCreditosCursos());
+        assertNotNull(usuario.getAcesso().getMensalidade());
+        assertSame(usuario, usuario.getAcesso().getMensalidade().getUsuario());
+        assertEquals("PAGA", resultado.acesso().statusMensalidade());
+        assertTrue(resultado.acesso().temAcessoAoCurso());
+        assertFalse(resultado.acesso().plataformaCongelada());
         verify(usuarioRepository).save(usuario);
     }
 
@@ -113,9 +107,9 @@ class MensalidadeServiceTest {
 
         // ENTAO
         // O bloqueio nao impede a persistencia: o usuario e salvo com as flags atualizadas.
-        assertEquals("PENDENTE", resultado.getStatusMensalidade());
-        assertFalse(resultado.isTemAcessoAoCurso());
-        assertTrue(resultado.isPlataformaCongelada());
+        assertEquals("PENDENTE", resultado.acesso().statusMensalidade());
+        assertFalse(resultado.acesso().temAcessoAoCurso());
+        assertTrue(resultado.acesso().plataformaCongelada());
         verify(usuarioRepository).save(usuario);
     }
 
@@ -123,7 +117,7 @@ class MensalidadeServiceTest {
     void devePagarMensalidadePendenteELiberarAcesso() {
         // DADO
         var usuario = usuarioComMensalidade(StatusMensalidade.PENDENTE);
-        var mensalidadeOriginal = usuario.getMensalidade();
+        var mensalidadeOriginal = usuario.getAcesso().getMensalidade();
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         salvarDevolveOProprioUsuario();
 
@@ -132,12 +126,12 @@ class MensalidadeServiceTest {
 
         // ENTAO
         // A mensalidade existente e reaproveitada, nao substituida.
-        assertSame(mensalidadeOriginal, usuario.getMensalidade());
+        assertSame(mensalidadeOriginal, usuario.getAcesso().getMensalidade());
         assertTrue(mensalidadeOriginal.isPaga());
-        assertEquals("PAGA", resultado.getStatusMensalidade());
-        assertEquals("BASICO", resultado.getPlano());
-        assertTrue(resultado.isTemAcessoAoCurso());
-        assertFalse(resultado.isPlataformaCongelada());
+        assertEquals("PAGA", resultado.acesso().statusMensalidade());
+        assertEquals("BASICO", resultado.assinatura().plano());
+        assertTrue(resultado.acesso().temAcessoAoCurso());
+        assertFalse(resultado.acesso().plataformaCongelada());
     }
 
     @Test
@@ -145,7 +139,7 @@ class MensalidadeServiceTest {
         // DADO
         var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
         usuario.validarAcessoPlataforma();
-        var mensalidadeOriginal = usuario.getMensalidade();
+        var mensalidadeOriginal = usuario.getAcesso().getMensalidade();
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         salvarDevolveOProprioUsuario();
 
@@ -153,11 +147,11 @@ class MensalidadeServiceTest {
         var resultado = service.atualizarStatus(1L, request("pendente"));
 
         // ENTAO
-        assertSame(mensalidadeOriginal, usuario.getMensalidade());
-        assertTrue(mensalidadeOriginal.isPendente());
-        assertEquals("PENDENTE", resultado.getStatusMensalidade());
-        assertFalse(resultado.isTemAcessoAoCurso());
-        assertTrue(resultado.isPlataformaCongelada());
+        assertSame(mensalidadeOriginal, usuario.getAcesso().getMensalidade());
+        assertEquals(StatusMensalidade.PENDENTE, mensalidadeOriginal.getStatus());
+        assertEquals("PENDENTE", resultado.acesso().statusMensalidade());
+        assertFalse(resultado.acesso().temAcessoAoCurso());
+        assertTrue(resultado.acesso().plataformaCongelada());
         verify(usuarioRepository).save(usuario);
     }
 }

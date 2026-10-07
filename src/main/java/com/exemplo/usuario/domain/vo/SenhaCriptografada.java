@@ -18,11 +18,7 @@ public class SenhaCriptografada {
     }
 
     public SenhaCriptografada(String valor) {
-        String normalizado = valor == null ? null : valor.trim();
-        if (normalizado == null || normalizado.isBlank()) {
-            throw new IllegalArgumentException("Senha e obrigatoria");
-        }
-        this.valor = normalizado;
+        this.valor = Texto.obrigatorio(valor, "Senha e obrigatoria");
     }
 
     public String getValor() {
@@ -31,7 +27,6 @@ public class SenhaCriptografada {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (!(o instanceof SenhaCriptografada that)) return false;
         return Objects.equals(valor, that.valor);
     }

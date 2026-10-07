@@ -16,11 +16,7 @@ public class TituloCurso {
     }
 
     public TituloCurso(String valor) {
-        String normalizado = valor == null ? null : valor.trim();
-        if (normalizado == null || normalizado.isBlank()) {
-            throw new IllegalArgumentException("Titulo e obrigatorio");
-        }
-        this.valor = normalizado;
+        this.valor = Texto.obrigatorio(valor, "Titulo e obrigatorio");
     }
 
     public String getValor() {
@@ -29,7 +25,6 @@ public class TituloCurso {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (!(o instanceof TituloCurso that)) return false;
         return Objects.equals(valor, that.valor);
     }

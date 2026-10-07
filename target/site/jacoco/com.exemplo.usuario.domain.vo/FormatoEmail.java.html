@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FormatoEmail.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.domain.vo</a> &gt; <span class="el_source">FormatoEmail.java</span></div><h1>FormatoEmail.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.domain.vo;
+
+import java.util.regex.Pattern;
+
+// Regra de formato do e-mail, separada do Value Object EmailUsuario.
+final class FormatoEmail {
+
+    // Pattern = expressao regular reutilizavel para validar formato do e-mail.
+<span class="fc" id="L9">    private static final Pattern EMAIL_PATTERN = Pattern.compile(&quot;^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$&quot;);</span>
+
+    private FormatoEmail() {
+    }
+
+    static String validar(String email) {
+<span class="fc bfc" id="L15" title="All 2 branches covered.">        if (!EMAIL_PATTERN.matcher(email).matches()) {</span>
+<span class="fc" id="L16">            throw new IllegalArgumentException(&quot;E-mail invalido&quot;);</span>
+        }
+<span class="fc" id="L18">        return email;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

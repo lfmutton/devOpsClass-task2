@@ -51,6 +51,12 @@ class MatriculaServiceTest {
         service = new MatriculaService(matriculaRepository, usuarioRepository, cursoRepository, assinaturaRepository);
     }
 
+    private Usuario usuarioComMensalidade(StatusMensalidade status) {
+        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
+        usuario.getAcesso().vincularMensalidade(new Mensalidade(usuario, status));
+        return usuario;
+    }
+
     @Test
     void deveBloquearMatriculaQuandoUsuarioSemMensalidade() {
         // DADO
@@ -61,8 +67,8 @@ class MatriculaServiceTest {
         // O bloqueio acontece antes de buscar curso/assinatura, entao esses
         // repositories nem chegam a ser chamados.
         assertThrows(IllegalStateException.class, () -> service.matricular(1L, 1L, false));
-        assertFalse(usuario.temAcessoAoCurso());
-        assertTrue(usuario.isPlataformaCongelada());
+        assertFalse(usuario.getAcesso().temAcessoAoCurso());
+        assertTrue(usuario.getAcesso().isPlataformaCongelada());
         verify(cursoRepository, never()).findById(any());
         verify(matriculaRepository, never()).save(any());
     }
@@ -70,8 +76,7 @@ class MatriculaServiceTest {
     @Test
     void deveBloquearMatriculaQuandoMensalidadePendente() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PENDENTE));
+        var usuario = usuarioComMensalidade(StatusMensalidade.PENDENTE);
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
 
         // QUANDO / ENTAO
@@ -82,34 +87,32 @@ class MatriculaServiceTest {
     @Test
     void devePermitirMatriculaQuandoMensalidadePaga() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
         var curso = new Curso("Java", "Curso de Java");
         var assinatura = new Assinatura(usuario);
-        var matriculaSalva = new Matricula(usuario, curso, false);
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         when(cursoRepository.findById(1L)).thenReturn(Optional.of(curso));
         when(assinaturaRepository.findByUsuarioId(1L)).thenReturn(Optional.of(assinatura));
-        when(matriculaRepository.save(any())).thenReturn(matriculaSalva);
+        when(matriculaRepository.save(any(Matricula.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // QUANDO
         var resultado = service.matricular(1L, 1L, false);
 
         // ENTAO
         assertNotNull(resultado);
-        assertTrue(usuario.temAcessoAoCurso());
-        assertFalse(usuario.isPlataformaCongelada());
+        assertEquals("EM_ANDAMENTO", resultado.situacao().status());
+        assertFalse(resultado.situacao().bonus());
+        assertTrue(usuario.getAcesso().temAcessoAoCurso());
+        assertFalse(usuario.getAcesso().isPlataformaCongelada());
         verify(matriculaRepository).save(any());
     }
 
     @Test
     void deveConcederCreditoAoConcluirComNotaAltaEMensalidadePaga() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
-        var curso = new Curso("Java", "Curso de Java");
-        var matricula = new Matricula(usuario, curso, false);
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
+        var matricula = new Matricula(usuario, new Curso("Java", "Curso de Java"), false);
         var assinatura = new Assinatura(usuario);
 
         when(matriculaRepository.findById(10L)).thenReturn(Optional.of(matricula));
@@ -120,18 +123,17 @@ class MatriculaServiceTest {
         var resultado = service.concluir(10L, 9.0);
 
         // ENTAO
-        assertNotNull(resultado);
-        assertEquals(3, assinatura.getCreditosCursos());
-        assertEquals(1, assinatura.getCursosConcluidosComSucesso());
+        assertEquals("CONCLUIDO", resultado.situacao().status());
+        assertEquals(9.0, resultado.situacao().notaFinal());
+        assertEquals(3, assinatura.getCarteira().getCreditosCursos());
+        assertEquals(1, assinatura.getProgresso().getCursosConcluidosComSucesso());
     }
 
     @Test
     void naoDeveConcederCreditoQuandoNotaAbaixoDeSete() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
-        var curso = new Curso("Java", "Curso de Java");
-        var matricula = new Matricula(usuario, curso, false);
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
+        var matricula = new Matricula(usuario, new Curso("Java", "Curso de Java"), false);
 
         when(matriculaRepository.findById(10L)).thenReturn(Optional.of(matricula));
         when(matriculaRepository.save(any())).thenReturn(matricula);
@@ -144,12 +146,30 @@ class MatriculaServiceTest {
     }
 
     @Test
+    void naoDeveConcluirAMesmaMatriculaDuasVezes() {
+        // DADO
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
+        var matricula = new Matricula(usuario, new Curso("Java", "Curso de Java"), false);
+        var assinatura = new Assinatura(usuario);
+
+        when(matriculaRepository.findById(10L)).thenReturn(Optional.of(matricula));
+        when(assinaturaRepository.findByUsuarioId(any())).thenReturn(Optional.of(assinatura));
+        when(matriculaRepository.save(any())).thenReturn(matricula);
+        service.concluir(10L, 9.0);
+
+        // QUANDO / ENTAO
+        var ex = assertThrows(IllegalStateException.class, () -> service.concluir(10L, 9.0));
+        assertEquals("Matricula ja concluida", ex.getMessage());
+        // Os creditos foram concedidos uma unica vez.
+        assertEquals(3, assinatura.getCarteira().getCreditosCursos());
+        assertEquals(1, assinatura.getProgresso().getCursosConcluidosComSucesso());
+    }
+
+    @Test
     void deveListarMatriculasDoUsuarioConvertidasEmDTO() {
         // DADO
         var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        var curso = new Curso("Java", "Curso de Java");
-        var matricula = new Matricula(usuario, curso, true);
-        matricula.setNotaFinal(8.5);
+        var matricula = new Matricula(usuario, new Curso("Java", "Curso de Java"), true);
         when(matriculaRepository.findByUsuarioId(1L)).thenReturn(List.of(matricula));
 
         // QUANDO
@@ -158,11 +178,10 @@ class MatriculaServiceTest {
         // ENTAO
         assertEquals(1, resultado.size());
         var dto = resultado.get(0);
-        assertEquals("Fulano", dto.getUsuarioNome());
-        assertEquals("Java", dto.getCursoTitulo());
-        assertEquals("EM_ANDAMENTO", dto.getStatus());
-        assertEquals(8.5, dto.getNotaFinal());
-        assertTrue(dto.isBonus());
+        assertEquals("Fulano", dto.alunoCurso().usuarioNome());
+        assertEquals("Java", dto.alunoCurso().cursoTitulo());
+        assertEquals("EM_ANDAMENTO", dto.situacao().status());
+        assertTrue(dto.situacao().bonus());
     }
 
     @Test
@@ -171,7 +190,7 @@ class MatriculaServiceTest {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.empty());
 
         // QUANDO / ENTAO
-        var ex = assertThrows(RuntimeException.class, () -> service.matricular(1L, 1L, false));
+        var ex = assertThrows(RecursoNaoEncontradoException.class, () -> service.matricular(1L, 1L, false));
         assertEquals("Usuario nao encontrado", ex.getMessage());
         verify(matriculaRepository, never()).save(any());
     }
@@ -179,13 +198,12 @@ class MatriculaServiceTest {
     @Test
     void deveLancarExcecaoAoMatricularEmCursoInexistente() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         when(cursoRepository.findById(2L)).thenReturn(Optional.empty());
 
         // QUANDO / ENTAO
-        var ex = assertThrows(RuntimeException.class, () -> service.matricular(1L, 2L, false));
+        var ex = assertThrows(RecursoNaoEncontradoException.class, () -> service.matricular(1L, 2L, false));
         assertEquals("Curso nao encontrado", ex.getMessage());
         verify(matriculaRepository, never()).save(any());
     }
@@ -193,14 +211,13 @@ class MatriculaServiceTest {
     @Test
     void deveLancarExcecaoAoMatricularUsuarioSemAssinatura() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         when(cursoRepository.findById(2L)).thenReturn(Optional.of(new Curso("Java", "Curso de Java")));
         when(assinaturaRepository.findByUsuarioId(1L)).thenReturn(Optional.empty());
 
         // QUANDO / ENTAO
-        var ex = assertThrows(RuntimeException.class, () -> service.matricular(1L, 2L, false));
+        var ex = assertThrows(RecursoNaoEncontradoException.class, () -> service.matricular(1L, 2L, false));
         assertEquals("Assinatura nao encontrada", ex.getMessage());
         verify(matriculaRepository, never()).save(any());
     }
@@ -208,14 +225,12 @@ class MatriculaServiceTest {
     @Test
     void deveConsumirCreditoAoMatricularComBonus() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
-        var curso = new Curso("Java", "Curso de Java");
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
         var assinatura = new Assinatura(usuario);
-        assinatura.adicionarCreditos(2);
+        assinatura.getCarteira().adicionarCreditos(2);
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
-        when(cursoRepository.findById(1L)).thenReturn(Optional.of(curso));
+        when(cursoRepository.findById(1L)).thenReturn(Optional.of(new Curso("Java", "Curso de Java")));
         when(assinaturaRepository.findByUsuarioId(1L)).thenReturn(Optional.of(assinatura));
         when(matriculaRepository.save(any(Matricula.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -223,16 +238,14 @@ class MatriculaServiceTest {
         var resultado = service.matricular(1L, 1L, true);
 
         // ENTAO
-        assertEquals(1, assinatura.getCreditosCursos());
-        assertTrue(resultado.isBonus());
-        assertEquals("EM_ANDAMENTO", resultado.getStatus());
+        assertEquals(1, assinatura.getCarteira().getCreditosCursos());
+        assertTrue(resultado.situacao().bonus());
     }
 
     @Test
     void naoDeveMatricularComBonusQuandoSemCreditos() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
         var assinatura = new Assinatura(usuario);
 
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
@@ -241,7 +254,7 @@ class MatriculaServiceTest {
 
         // QUANDO / ENTAO
         assertThrows(IllegalStateException.class, () -> service.matricular(1L, 1L, true));
-        assertEquals(0, assinatura.getCreditosCursos());
+        assertEquals(0, assinatura.getCarteira().getCreditosCursos());
         verify(matriculaRepository, never()).save(any());
     }
 
@@ -251,7 +264,7 @@ class MatriculaServiceTest {
         when(matriculaRepository.findById(10L)).thenReturn(Optional.empty());
 
         // QUANDO / ENTAO
-        var ex = assertThrows(RuntimeException.class, () -> service.concluir(10L, 9.0));
+        var ex = assertThrows(RecursoNaoEncontradoException.class, () -> service.concluir(10L, 9.0));
         assertEquals("Matricula nao encontrada", ex.getMessage());
         verify(matriculaRepository, never()).save(any());
     }
@@ -259,15 +272,14 @@ class MatriculaServiceTest {
     @Test
     void deveLancarExcecaoAoConcluirComNotaAltaSemAssinatura() {
         // DADO
-        var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        usuario.vincularMensalidade(new Mensalidade(usuario, StatusMensalidade.PAGA));
+        var usuario = usuarioComMensalidade(StatusMensalidade.PAGA);
         var matricula = new Matricula(usuario, new Curso("Java", "Curso de Java"), false);
 
         when(matriculaRepository.findById(10L)).thenReturn(Optional.of(matricula));
         when(assinaturaRepository.findByUsuarioId(any())).thenReturn(Optional.empty());
 
         // QUANDO / ENTAO
-        var ex = assertThrows(RuntimeException.class, () -> service.concluir(10L, 9.0));
+        var ex = assertThrows(RecursoNaoEncontradoException.class, () -> service.concluir(10L, 9.0));
         assertEquals("Assinatura nao encontrada", ex.getMessage());
         verify(matriculaRepository, never()).save(any());
     }
@@ -276,8 +288,7 @@ class MatriculaServiceTest {
     void deveBloquearConclusaoQuandoUsuarioSemMensalidadePaga() {
         // DADO
         var usuario = new Usuario("Fulano", "fulano@teste.com", "senha123");
-        var curso = new Curso("Java", "Curso de Java");
-        var matricula = new Matricula(usuario, curso, false);
+        var matricula = new Matricula(usuario, new Curso("Java", "Curso de Java"), false);
 
         when(matriculaRepository.findById(10L)).thenReturn(Optional.of(matricula));
 

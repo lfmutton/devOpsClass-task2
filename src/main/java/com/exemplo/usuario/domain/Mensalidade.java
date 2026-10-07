@@ -22,16 +22,12 @@ public class Mensalidade {
     @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 
-    public Mensalidade() {
+    protected Mensalidade() {
     }
 
     public Mensalidade(Usuario usuario, StatusMensalidade status) {
         this.usuario = usuario;
         this.status = status;
-    }
-
-    public Long getId() {
-        return id;
     }
 
     public StatusMensalidade getStatus() {
@@ -42,26 +38,13 @@ public class Mensalidade {
         return usuario;
     }
 
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
-    }
-
-    // Metodo de dominio: verifica se a mensalidade esta pendente.
-    public boolean isPendente() {
-        return status == StatusMensalidade.PENDENTE;
-    }
-
     // Metodo de dominio: verifica se a mensalidade esta paga.
     public boolean isPaga() {
         return status == StatusMensalidade.PAGA;
     }
 
-    // Metodos de dominio: alteram o estado de pagamento.
-    public void pagar() {
-        this.status = StatusMensalidade.PAGA;
-    }
-
-    public void marcarComoPendente() {
-        this.status = StatusMensalidade.PENDENTE;
+    // Metodo de dominio: altera o estado de pagamento (PAGA ou PENDENTE).
+    public void alterarStatus(StatusMensalidade novoStatus) {
+        this.status = novoStatus;
     }
 }

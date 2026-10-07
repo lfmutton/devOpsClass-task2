@@ -1,75 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UsuarioResponseDTO.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">usuario-api-v2</a> &gt; <a href="index.source.html" class="el_package">com.exemplo.usuario.dto</a> &gt; <span class="el_source">UsuarioResponseDTO.java</span></div><h1>UsuarioResponseDTO.java</h1><pre class="source lang-java linenums">package com.exemplo.usuario.dto;
 
+import com.exemplo.usuario.domain.Usuario;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 // DTO de saida da API para usuario.
 // Repare que ele nao expõe a senha.
-public class UsuarioResponseDTO {
-    private Long id;
-    private String nome;
-    private String email;
-    private String plano;
-    private Integer creditosCursos;
-    private Integer cursosConcluidosComSucesso;
-    private Integer moedas;
-    private String statusMensalidade;
-    private boolean temAcessoAoCurso;
-    private boolean plataformaCongelada;
+// @JsonUnwrapped &quot;achata&quot; as partes no JSON, mantendo o formato que o frontend usa:
+// { id, nome, email, plano, creditosCursos, ..., statusMensalidade, temAcessoAoCurso, plataformaCongelada }
+<span class="fc" id="L10">public record UsuarioResponseDTO(</span>
+        Long id,
+        String nome,
+        String email,
+        @JsonUnwrapped AssinaturaResponseDTO assinatura,
+        @JsonUnwrapped AcessoResponseDTO acesso) {
 
-<span class="nc" id="L17">    public UsuarioResponseDTO() {</span>
-<span class="nc" id="L18">    }</span>
-
-    public UsuarioResponseDTO(Long id, String nome, String email, String plano, Integer creditosCursos,
-                              Integer cursosConcluidosComSucesso, Integer moedas, String statusMensalidade,
-<span class="fc" id="L22">                              boolean temAcessoAoCurso, boolean plataformaCongelada) {</span>
-<span class="fc" id="L23">        this.id = id;</span>
-<span class="fc" id="L24">        this.nome = nome;</span>
-<span class="fc" id="L25">        this.email = email;</span>
-<span class="fc" id="L26">        this.plano = plano;</span>
-<span class="fc" id="L27">        this.creditosCursos = creditosCursos;</span>
-<span class="fc" id="L28">        this.cursosConcluidosComSucesso = cursosConcluidosComSucesso;</span>
-<span class="fc" id="L29">        this.moedas = moedas;</span>
-<span class="fc" id="L30">        this.statusMensalidade = statusMensalidade;</span>
-<span class="fc" id="L31">        this.temAcessoAoCurso = temAcessoAoCurso;</span>
-<span class="fc" id="L32">        this.plataformaCongelada = plataformaCongelada;</span>
-<span class="fc" id="L33">    }</span>
-
-    public Long getId() {
-<span class="nc" id="L36">        return id;</span>
-    }
-
-    public String getNome() {
-<span class="fc" id="L40">        return nome;</span>
-    }
-
-    public String getEmail() {
-<span class="fc" id="L44">        return email;</span>
-    }
-
-    public String getPlano() {
-<span class="fc" id="L48">        return plano;</span>
-    }
-
-    public Integer getCreditosCursos() {
-<span class="fc" id="L52">        return creditosCursos;</span>
-    }
-
-    public Integer getCursosConcluidosComSucesso() {
-<span class="fc" id="L56">        return cursosConcluidosComSucesso;</span>
-    }
-
-    public Integer getMoedas() {
-<span class="fc" id="L60">        return moedas;</span>
-    }
-
-    public String getStatusMensalidade() {
-<span class="fc" id="L64">        return statusMensalidade;</span>
-    }
-
-    public boolean isTemAcessoAoCurso() {
-<span class="fc" id="L68">        return temAcessoAoCurso;</span>
-    }
-
-    public boolean isPlataformaCongelada() {
-<span class="fc" id="L72">        return plataformaCongelada;</span>
+    // Centraliza o mapeamento entidade -&gt; DTO (antes duplicado em dois services).
+    public static UsuarioResponseDTO de(Usuario usuario) {
+<span class="fc" id="L19">        return new UsuarioResponseDTO(</span>
+<span class="fc" id="L20">                usuario.getId(),</span>
+<span class="fc" id="L21">                usuario.getPerfil().getNome(),</span>
+<span class="fc" id="L22">                usuario.getPerfil().getEmail(),</span>
+<span class="fc" id="L23">                AssinaturaResponseDTO.de(usuario.getAssinatura()),</span>
+<span class="fc" id="L24">                AcessoResponseDTO.de(usuario.getAcesso())</span>
+        );
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
