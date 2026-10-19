@@ -1,0 +1,2 @@
+# Saida do build do Maven (gerada por mvn compile/test/package)
+target/
