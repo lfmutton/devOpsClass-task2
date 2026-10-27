@@ -39,6 +39,19 @@
         <jacoco.version>0.8.13</jacoco.version>
     </properties>
 
+    <!-- Spring Modulith: BOM que alinha as versoes dos modulos (1.4.x = Spring Boot 3.5). -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.modulith</groupId>
+                <artifactId>spring-modulith-bom</artifactId>
+                <version>1.4.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -78,6 +91,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Verifica as fronteiras entre modulos e gera a documentacao (ModularidadeTest). -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

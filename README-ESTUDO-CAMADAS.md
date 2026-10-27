@@ -341,3 +341,59 @@ Em projetos de produção, normalmente usamos comentários com mais parcimônia,
 - documentação externa quando necessário.
 
 Mas, para aprender Spring Boot por camadas, esta abordagem é excelente.
+
+## 10. Monolito modular
+
+O projeto continua sendo **um unico deploy** (um JAR, um banco), mas o codigo foi dividido em **modulos de negocio**.
+A verificacao das fronteiras e feita pelo **Spring Modulith** no teste `ModularidadeTest`.
+
+### Os 6 modulos
+
+Cada subpacote direto de `com.exemplo.usuario` e um modulo:
+
+| Modulo | Pacote | Responsabilidade |
+|---|---|---|
+| `shared` | `com.exemplo.usuario.shared` | Codigo comum: `RecursoNaoEncontradoException`, `Texto`, seguranca, OpenAPI, tratamento global de erros e `/home`. |
+| `curso` | `com.exemplo.usuario.curso` | Cadastro e consulta de cursos (`CursoService`). |
+| `assinatura` | `com.exemplo.usuario.assinatura` | Plano, creditos, conclusoes e moedas do usuario (`AssinaturaService`). |
+| `mensalidade` | `com.exemplo.usuario.mensalidade` | Status da mensalidade (`MensalidadeService`, `StatusMensalidade`). |
+| `usuario` | `com.exemplo.usuario.usuario` | Cadastro de usuarios e controle de acesso a plataforma (`UsuarioApi`). |
+| `matricula` | `com.exemplo.usuario.matricula` | Matricula em cursos e conclusao; nao expoe API para outros modulos. |
+
+### Regra de visibilidade
+
+- **Pacote base do modulo = API publica.** Ex.: `com.exemplo.usuario.curso.CursoService` pode ser usado por outros modulos.
+- **Subpacotes (ex.: `.internal`) = privados do modulo.** Entidades JPA, repositories e classes auxiliares ficam la; outro modulo que os importar faz o `ModularidadeTest` falhar.
+
+### Grafo de dependencias (sem ciclos)
+
+```
+usuario    -> assinatura, mensalidade, shared
+matricula  -> usuario, curso, assinatura, shared
+curso      -> shared
+assinatura -> shared
+mensalidade-> shared
+shared     -> (nada)
+```
+
+### IDs em vez de entidades entre modulos
+
+Uma entidade JPA nunca aponta para a entidade de outro modulo (`@ManyToOne Usuario usuario`).
+Ela guarda apenas o **ID** com o mesmo nome de coluna, mantendo o esquema do banco igual:
+
+```java
+@Column(name = "usuario_id", nullable = false)
+private Long usuarioId;
+```
+
+Quando um modulo precisa de dados do outro, ele chama a **API publica** (ex.: `UsuarioApi.buscarNome(usuarioId)`).
+Assim cada modulo pode evoluir (ou ate virar um microsservico no futuro) sem quebrar os demais.
+
+### Como verificar
+
+```bash
+mvn test -Dtest=ModularidadeTest
+```
+
+O primeiro teste chama `ApplicationModules.of(UsuarioApplication.class).verify()`.
+O segundo gera diagramas PlantUML em `target/spring-modulith-docs`.
