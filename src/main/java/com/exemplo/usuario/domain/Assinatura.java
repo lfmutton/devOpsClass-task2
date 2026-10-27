@@ -2,9 +2,6 @@ package com.exemplo.usuario.domain;
 
 import jakarta.persistence.*;
 
-// Camada: DOMINIO.
-// Entidade JPA que representa a assinatura do usuario.
-// Os saldos ficam em CarteiraAssinatura e o plano/conclusoes em ProgressoAssinatura.
 @Entity
 @Table(name = "assinaturas")
 public class Assinatura {
