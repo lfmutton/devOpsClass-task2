@@ -103,18 +103,21 @@ Resumo dos trade-offs:
 ### 8.1 Nível 1 — Contexto
 
 ```mermaid
-C4Context
-    title Contexto - Usuario-API
+flowchart TB
+    aluno(["<b>Aluno</b><br/>[Pessoa]<br/>Estuda, ganha pontos e<br/>consulta o leaderboard"])
+    cliente(["<b>Cliente</b><br/>[Pessoa]<br/>Acompanha o ranking<br/>dos usuários"])
+    admin(["<b>Administrador</b><br/>[Pessoa]<br/>Cadastra cursos e<br/>gerencia mensalidades"])
 
-    Person(aluno, "Aluno", "Estuda, ganha pontos e consulta o leaderboard")
-    Person(cliente, "Cliente", "Acompanha o ranking dos usuários")
-    Person(admin, "Administrador", "Cadastra cursos e gerencia mensalidades")
+    api["<b>Usuario-API</b><br/>[Sistema]<br/>Cursos, matrículas, assinatura, mensalidade,<br/>gamificação e leaderboard"]
 
-    System(api, "Usuario-API", "Cursos, matrículas, assinatura, mensalidade, gamificação e leaderboard")
+    aluno -- "Conclui cursos e consulta pontuação<br/>[HTTPS]" --> api
+    cliente -- "Consulta o leaderboard<br/>[HTTPS]" --> api
+    admin -- "Administra<br/>[HTTPS]" --> api
 
-    Rel(aluno, api, "Conclui cursos e consulta pontuação", "HTTPS")
-    Rel(cliente, api, "Consulta o leaderboard", "HTTPS")
-    Rel(admin, api, "Administra", "HTTPS")
+    classDef pessoa fill:#08427b,stroke:#052e56,color:#fff
+    classDef sistema fill:#1168bd,stroke:#0b4884,color:#fff
+    class aluno,cliente,admin pessoa
+    class api sistema
 ```
 
 ### 8.2 Nível 2 — Contêineres (atualizado)
@@ -122,27 +125,30 @@ C4Context
 Reflete o `docker-compose.yml` e a branch `refactor/monolito-modular`. A API continua sendo **um único contêiner**: a modularização é interna e não cria novos processos.
 
 ```mermaid
-C4Container
-    title Contêineres - Usuario-API (monólito modular)
+flowchart TB
+    aluno(["<b>Aluno</b><br/>[Pessoa]"])
+    cliente(["<b>Cliente</b><br/>[Pessoa]"])
+    admin(["<b>Administrador</b><br/>[Pessoa]"])
 
-    Person(aluno, "Aluno")
-    Person(cliente, "Cliente")
-    Person(admin, "Administrador")
+    subgraph sistema["Usuario-API — docker-compose"]
+        front["<b>Front-end</b><br/>[HTML, CSS, JS e Vue]<br/>Telas de usuários, cursos,<br/>matrículas e leaderboard"]
+        app["<b>API — Monólito Modular</b><br/>[Java 21, Spring Boot 3.5, Spring Modulith]<br/>porta 8080<br/>módulos: usuario, curso, matricula,<br/>assinatura, mensalidade, shared"]
+        db[("<b>PostgreSQL 16</b><br/>[Banco de dados]<br/>porta 5432")]
+        pgadmin["<b>pgAdmin 4</b><br/>[Administração do banco]<br/>porta 5050"]
+    end
 
-    System_Boundary(sistema, "Usuario-API (docker-compose)") {
-        Container(front, "Front-end", "HTML, CSS, JS (static/) e Vue (frontend-vue/)", "Telas de usuários, cursos, matrículas, pontuação e leaderboard")
-        Container(app, "API - Monólito Modular", "Java 21, Spring Boot 3.5, Spring Modulith; porta 8080", "Módulos: usuario, curso, matricula, assinatura, mensalidade, shared; planejados: ranking, gamificacao")
-        ContainerDb(db, "Banco de Dados", "PostgreSQL 16; porta 5432", "Um schema compartilhado; cada módulo é dono das suas tabelas")
-        Container(pgadmin, "pgAdmin", "pgAdmin 4; porta 5050", "Administração do banco")
-    }
+    aluno -- "Usa [HTTPS]" --> front
+    cliente -- "Usa [HTTPS]" --> front
+    admin -- "Swagger UI [HTTPS]" --> app
+    admin -- "Consulta tabelas [HTTP]" --> pgadmin
+    front -- "REST/JSON + HTTP Basic" --> app
+    app -- "Lê e grava [JPA/JDBC]" --> db
+    pgadmin -- "Conecta [PostgreSQL]" --> db
 
-    Rel(aluno, front, "Usa", "HTTPS")
-    Rel(cliente, front, "Usa", "HTTPS")
-    Rel(front, app, "Chama", "REST/JSON + HTTP Basic")
-    Rel(admin, app, "Swagger UI", "HTTPS")
-    Rel(app, db, "Lê e grava", "JPA/JDBC")
-    Rel(admin, pgadmin, "Consulta tabelas", "HTTP")
-    Rel(pgadmin, db, "Conecta", "PostgreSQL")
+    classDef pessoa fill:#08427b,stroke:#052e56,color:#fff
+    classDef container fill:#438dd5,stroke:#2e6295,color:#fff
+    class aluno,cliente,admin pessoa
+    class front,app,db,pgadmin container
 ```
 
 | Contêiner | Tecnologia | Responsabilidade |
@@ -154,188 +160,159 @@ C4Container
 
 ### 8.3 Nível 3 — Componentes (módulos da API)
 
+Linha cheia = chamada à API pública; linha tracejada = evento. Módulos com borda tracejada estão planejados.
+
 ```mermaid
-C4Component
-    title Componentes - API (módulos)
+flowchart TB
+    front["<b>Front-end</b><br/>[HTML, JS]"]
+    db[("<b>PostgreSQL</b>")]
 
-    Container(front, "Front-end", "HTML, JS")
-    ContainerDb(db, "PostgreSQL")
+    subgraph app["API — Monólito Modular"]
+        shared["<b>shared</b><br/>Segurança, Swagger,<br/>tratamento de erros"]
+        matricula["<b>matricula</b><br/>Matrícula e conclusão<br/>de cursos"]
+        usuario["<b>usuario</b><br/>Cadastro e acesso<br/>à plataforma"]
+        curso["<b>curso</b><br/>Catálogo de cursos"]
+        assinatura["<b>assinatura</b><br/>Plano, créditos e moedas"]
+        mensalidade["<b>mensalidade</b><br/>Status da mensalidade"]
+        gamificacao["<b>gamificacao</b> (planejado)<br/>Pontuação, conquistas<br/>e média semanal"]
+        ranking["<b>ranking</b> (planejado)<br/>Leaderboard por username"]
+    end
 
-    Container_Boundary(app, "API - Monólito Modular") {
-        Component(shared, "shared", "Spring Security, OpenAPI", "Segurança, Swagger, tratamento de erros")
-        Component(usuario, "usuario", "Módulo", "Cadastro e acesso à plataforma")
-        Component(curso, "curso", "Módulo", "Catálogo de cursos")
-        Component(matricula, "matricula", "Módulo", "Matrícula e conclusão de cursos")
-        Component(assinatura, "assinatura", "Módulo", "Plano, créditos e moedas")
-        Component(mensalidade, "mensalidade", "Módulo", "Status da mensalidade")
-        Component(gamificacao, "gamificacao (planejado)", "Módulo", "Pontuação, conquistas e média semanal")
-        Component(ranking, "ranking (planejado)", "Módulo", "Leaderboard por username")
-    }
+    front -- "Requisições [HTTPS]" --> shared
+    matricula -- "UsuarioApi" --> usuario
+    matricula -- "CursoService" --> curso
+    matricula -- "AssinaturaService" --> assinatura
+    usuario -- "AssinaturaService" --> assinatura
+    mensalidade -- "UsuarioApi" --> usuario
+    mensalidade -. "escuta UsuarioCriadoEvent" .-> usuario
+    gamificacao -. "escuta conclusão de curso" .-> matricula
+    ranking -- "lê pontuações" --> gamificacao
+    app -- "JPA" --> db
 
-    Rel(front, shared, "Requisições", "HTTPS")
-    Rel(matricula, usuario, "UsuarioApi")
-    Rel(matricula, curso, "CursoService")
-    Rel(matricula, assinatura, "AssinaturaService")
-    Rel(usuario, assinatura, "AssinaturaService")
-    Rel(mensalidade, usuario, "UsuarioApi + escuta UsuarioCriadoEvent")
-    Rel(gamificacao, matricula, "Escuta conclusão de curso (evento)")
-    Rel(ranking, gamificacao, "Lê pontuações (API pública)")
-    Rel(usuario, db, "JPA")
-    Rel(matricula, db, "JPA")
+    classDef modulo fill:#85bbf0,stroke:#5d82a8,color:#000
+    classDef planejado fill:#eeeeee,stroke:#888,stroke-dasharray:5 5,color:#333
+    classDef externo fill:#438dd5,stroke:#2e6295,color:#fff
+    class shared,matricula,usuario,curso,assinatura,mensalidade modulo
+    class gamificacao,ranking planejado
+    class front,db externo
 ```
 
 ### 8.4 Nível 4 — Código
 
 Classes reais da branch [`refactor/monolito-modular`](https://github.com/lfmutton/devOpsClass-task2/tree/refactor/monolito-modular). Cada pacote é um módulo (verificado com **Spring Modulith**): as classes na raiz do pacote são a **API pública** do módulo e as do subpacote `internal` só podem ser usadas dentro dele. Os módulos se referenciam apenas por `usuarioId`/`cursoId`, sem relacionamento JPA entre si.
 
+O diagrama foi dividido em dois fluxos para ficar legível.
+
+**a) Matrícula e conclusão de curso** (`matricula` → `usuario`, `curso`, `assinatura`)
+
 ```mermaid
 classDiagram
-    direction LR
+    direction TB
 
-    namespace usuario {
-        class UsuarioApi {
-            <<API pública>>
-            +validarAcessoPlataforma(usuarioId)
-            +buscarNome(usuarioId) String
-        }
-        class CadastroUsuarioService {
-            +criar(UsuarioRequestDTO) UsuarioResponseDTO
-        }
-        class MensalidadeConsulta {
-            <<interface - porta>>
-            +estaPaga(usuarioId) boolean
-            +statusAtual(usuarioId) Optional~String~
-        }
-        class UsuarioCriadoEvent {
-            <<evento>>
-            +Long usuarioId
-        }
-        class Usuario {
-            <<Entity>>
-            -Long id
-            -PerfilUsuario perfil
-            -AcessoPlataforma acesso
-            +validarAcessoPlataforma(mensalidadePaga)
-        }
+    class MatriculaService {
+        +matricular(usuarioId, cursoId, bonus)
+        +concluir(matriculaId, notaFinal)
+        +listarPorUsuario(usuarioId)
     }
-
-    namespace curso {
-        class CursoService {
-            <<API pública>>
-            +listarTodos() List~CursoResponseDTO~
-            +criar(CursoRequestDTO) CursoResponseDTO
-            +buscarPorId(id) CursoResponseDTO
-        }
-        class Curso {
-            <<Entity>>
-            -Long id
-            -TituloCurso titulo
-            -DescricaoCurso descricao
-        }
+    class Matricula {
+        <<Entity>>
+        -Long usuarioId
+        -Long cursoId
+        -boolean bonus
     }
-
-    namespace matricula {
-        class MatriculaService {
-            +matricular(usuarioId, cursoId, bonus) MatriculaResponseDTO
-            +concluir(matriculaId, notaFinal) MatriculaResponseDTO
-            +listarPorUsuario(usuarioId) List~MatriculaResponseDTO~
-        }
-        class Matricula {
-            <<Entity>>
-            -Long id
-            -Long usuarioId
-            -Long cursoId
-            -boolean bonus
-            -SituacaoMatricula situacao
-        }
-        class SituacaoMatricula {
-            -StatusMatricula status
-            -Double notaFinal
-            +concluir(nota)
-            +deveLiberarCreditos() boolean
-        }
+    class SituacaoMatricula {
+        -StatusMatricula status
+        -Double notaFinal
+        +concluir(nota)
+        +deveLiberarCreditos() boolean
     }
-
-    namespace assinatura {
-        class AssinaturaService {
-            <<API pública>>
-            +criarParaUsuario(usuarioId)
-            +resumo(usuarioId) AssinaturaResponseDTO
-            +consumirCredito(usuarioId)
-            +registrarConclusaoComSucesso(usuarioId)
-        }
-        class Assinatura {
-            <<Entity>>
-            -Long id
-            -Long usuarioId
-            +registrarConclusaoComSucesso()
-            +paraResumo() AssinaturaResponseDTO
-        }
-        class CarteiraAssinatura {
-            -Integer creditosCursos
-            -Integer moedas
-            +adicionarCreditos(quantidade)
-            +consumirCredito()
-        }
-        class ProgressoAssinatura {
-            -PlanoAssinatura plano
-            -Integer cursosConcluidosComSucesso
-            +registrarConclusao()
-        }
+    class UsuarioApi {
+        <<API pública - usuario>>
+        +validarAcessoPlataforma(usuarioId)
+        +buscarNome(usuarioId) String
     }
-
-    namespace mensalidade {
-        class MensalidadeService {
-            <<API pública>>
-            +definirStatus(usuarioId, StatusMensalidade)
-            +estaPaga(usuarioId) boolean
-            +buscarStatus(usuarioId) Optional~StatusMensalidade~
-        }
-        class AtualizacaoMensalidadeService {
-            +atualizarStatus(usuarioId, MensalidadeRequestDTO) UsuarioResponseDTO
-        }
-        class MensalidadeConsultaAdapter {
-            +estaPaga(usuarioId) boolean
-            +statusAtual(usuarioId) Optional~String~
-        }
-        class MensalidadeInicialListener {
-            +aoCriarUsuario(UsuarioCriadoEvent)
-        }
-        class Mensalidade {
-            <<Entity>>
-            -Long id
-            -Long usuarioId
-            -StatusMensalidade status
-            +isPaga() boolean
-        }
+    class CursoService {
+        <<API pública - curso>>
+        +buscarPorId(id) CursoResponseDTO
     }
-
-    UsuarioApi --> Usuario
-    UsuarioApi --> MensalidadeConsulta : estaPaga
-    CadastroUsuarioService --> Usuario
-    CadastroUsuarioService --> AssinaturaService : criarParaUsuario
-    CadastroUsuarioService ..> UsuarioCriadoEvent : publica
-    CadastroUsuarioService --> MensalidadeConsulta : estaPaga
-    AtualizacaoMensalidadeService --> MensalidadeService : definirStatus
-    AtualizacaoMensalidadeService --> UsuarioApi : verificarExistencia / reavaliarAcesso
-    MensalidadeConsultaAdapter ..|> MensalidadeConsulta
-    MensalidadeConsultaAdapter --> MensalidadeService
-    MensalidadeInicialListener ..> UsuarioCriadoEvent : escuta
-    MensalidadeInicialListener --> MensalidadeService : definirStatus PAGA
-
-    CursoService --> Curso
+    class AssinaturaService {
+        <<API pública - assinatura>>
+        +consumirCredito(usuarioId)
+        +registrarConclusaoComSucesso(usuarioId)
+    }
+    class Assinatura {
+        <<Entity>>
+        -Long usuarioId
+    }
+    class CarteiraAssinatura {
+        -Integer creditosCursos
+        -Integer moedas
+    }
+    class ProgressoAssinatura {
+        -PlanoAssinatura plano
+        -Integer cursosConcluidosComSucesso
+    }
 
     MatriculaService --> Matricula
     Matricula *-- SituacaoMatricula
     MatriculaService --> UsuarioApi : validarAcessoPlataforma
     MatriculaService --> CursoService : buscarPorId
-    MatriculaService --> AssinaturaService : consumirCredito / registrarConclusaoComSucesso
-
+    MatriculaService --> AssinaturaService : consumirCredito / registrarConclusao
     AssinaturaService --> Assinatura
     Assinatura *-- CarteiraAssinatura
     Assinatura *-- ProgressoAssinatura
+```
 
-    MensalidadeService --> Mensalidade
+**b) Usuário × mensalidade sem ciclo** (inversão de dependência com porta + evento)
+
+```mermaid
+classDiagram
+    direction TB
+
+    class CadastroUsuarioService {
+        <<usuario>>
+        +criar(UsuarioRequestDTO) UsuarioResponseDTO
+    }
+    class UsuarioApi {
+        <<API pública - usuario>>
+        +verificarExistencia(usuarioId)
+        +reavaliarAcesso(usuarioId) UsuarioResponseDTO
+    }
+    class MensalidadeConsulta {
+        <<interface - porta do usuario>>
+        +estaPaga(usuarioId) boolean
+        +statusAtual(usuarioId) Optional~String~
+    }
+    class UsuarioCriadoEvent {
+        <<evento do usuario>>
+        +Long usuarioId
+    }
+    class MensalidadeConsultaAdapter {
+        <<mensalidade>>
+    }
+    class MensalidadeInicialListener {
+        <<mensalidade>>
+        +aoCriarUsuario(UsuarioCriadoEvent)
+    }
+    class AtualizacaoMensalidadeService {
+        <<mensalidade>>
+        +atualizarStatus(usuarioId, dto) UsuarioResponseDTO
+    }
+    class MensalidadeService {
+        <<API pública - mensalidade>>
+        +definirStatus(usuarioId, status)
+        +estaPaga(usuarioId) boolean
+    }
+
+    CadastroUsuarioService ..> UsuarioCriadoEvent : publica
+    CadastroUsuarioService --> MensalidadeConsulta : estaPaga
+    UsuarioApi --> MensalidadeConsulta : estaPaga
+    MensalidadeConsultaAdapter ..|> MensalidadeConsulta : implementa
+    MensalidadeConsultaAdapter --> MensalidadeService
+    MensalidadeInicialListener ..> UsuarioCriadoEvent : escuta
+    MensalidadeInicialListener --> MensalidadeService : definirStatus PAGA
+    AtualizacaoMensalidadeService --> UsuarioApi : verificarExistencia / reavaliarAcesso
+    AtualizacaoMensalidadeService --> MensalidadeService : definirStatus
 ```
 
 - **Fluxo da conclusão de curso:** `MatriculaService.concluir()` valida o acesso pela `UsuarioApi`, conclui a `SituacaoMatricula` e, se a nota for ≥ 7, chama `AssinaturaService.registrarConclusaoComSucesso()`. Tudo na mesma transação, o que garante o **RNF 2.2**.
