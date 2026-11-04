@@ -1,0 +1,32 @@
+@startuml
+set separator none
+title UsuarioApplication
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+Container_Boundary("UsuarioApplication.UsuarioApplication_boundary", "UsuarioApplication", $tags="") {
+  Component(UsuarioApplication.UsuarioApplication.Shared, "Shared", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Assinatura, "Assinatura", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Curso, "Curso", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Usuario, "Usuario", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Matricula, "Matricula", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Mensalidade, "Mensalidade", $techn="Module", $descr="", $tags="", $link="")
+}
+
+Rel(UsuarioApplication.UsuarioApplication.Matricula, UsuarioApplication.UsuarioApplication.Shared, "depends on", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Matricula, UsuarioApplication.UsuarioApplication.Usuario, "uses", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Matricula, UsuarioApplication.UsuarioApplication.Curso, "uses", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Matricula, UsuarioApplication.UsuarioApplication.Assinatura, "uses", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Assinatura, UsuarioApplication.UsuarioApplication.Shared, "depends on", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Mensalidade, UsuarioApplication.UsuarioApplication.Usuario, "listens to", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Mensalidade, UsuarioApplication.UsuarioApplication.Usuario, "uses", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Usuario, UsuarioApplication.UsuarioApplication.Shared, "depends on", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Usuario, UsuarioApplication.UsuarioApplication.Assinatura, "uses", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Curso, UsuarioApplication.UsuarioApplication.Shared, "depends on", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml

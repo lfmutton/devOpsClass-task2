@@ -1,0 +1,88 @@
+# Assinatura
+> Logical name: assinatura
+> Base package: com.exemplo.usuario.assinatura
+> Excluded packages: none
+> Named interfaces:
+  + NamedInterface: name=<<UNNAMED>>, types=[ c.e.u.a.AssinaturaService ]
+  + NamedInterface: name=dto, types=[ c.e.u.a.d.AssinaturaResponseDTO ]
+> Direct module dependencies: 
+  - shared
+> Spring beans:
+  + ….AssinaturaService
+  o ….internal.repository.AssinaturaRepository
+
+# Curso
+> Logical name: curso
+> Base package: com.exemplo.usuario.curso
+> Excluded packages: none
+> Named interfaces:
+  + NamedInterface: name=<<UNNAMED>>, types=[ c.e.u.c.CursoService ]
+  + NamedInterface: name=dto, types=[ c.e.u.c.d.CursoRequestDTO, c.e.u.c.d.CursoResponseDTO ]
+> Direct module dependencies: 
+  - shared
+> Spring beans:
+  + ….CursoService
+  o ….internal.controller.CursoRestController
+  o ….internal.repository.CursoRepository
+
+# Matricula
+> Logical name: matricula
+> Base package: com.exemplo.usuario.matricula
+> Excluded packages: none
+> Direct module dependencies: 
+  + assinatura
+  + curso
+  - shared
+  + usuario
+> Spring beans:
+  o ….internal.controller.MatriculaRestController
+  o ….internal.repository.MatriculaRepository
+  o ….internal.service.MatriculaResponseMapper
+  o ….internal.service.MatriculaService
+
+# Mensalidade
+> Logical name: mensalidade
+> Base package: com.exemplo.usuario.mensalidade
+> Excluded packages: none
+> Direct module dependencies: 
+  + usuario
+> Spring beans:
+  + ….MensalidadeService
+  o ….internal.controller.MensalidadeRestController
+  o ….internal.repository.MensalidadeRepository
+  o ….internal.service.AtualizacaoMensalidadeService
+  o ….internal.service.MensalidadeConsultaAdapter
+  o ….internal.service.MensalidadeInicialListener
+
+# Shared
+> Logical name: shared
+> Base package: com.exemplo.usuario.shared
+> Excluded packages: none
+> Direct module dependencies: none
+> Spring beans:
+  o ….config.OpenApiConfig
+  o ….config.SecurityConfig
+  o ….controller.ApiExceptionHandler
+  o ….controller.HomeController
+  o io.swagger.v3.oas.models.OpenAPI
+  o org.springframework.security.core.userdetails.UserDetailsService
+  o org.springframework.security.crypto.password.PasswordEncoder
+  o org.springframework.security.web.SecurityFilterChain
+
+# Usuario
+> Logical name: usuario
+> Base package: com.exemplo.usuario.usuario
+> Excluded packages: none
+> Named interfaces:
+  + NamedInterface: name=<<UNNAMED>>, types=[ c.e.u.u.MensalidadeConsulta, c.e.u.u.UsuarioApi, c.e.u.u.UsuarioCriadoEvent ]
+  + NamedInterface: name=dto, types=[ c.e.u.u.d.AcessoResponseDTO, c.e.u.u.d.UsuarioResponseDTO ]
+> Direct module dependencies: 
+  + assinatura
+  - shared
+> Spring beans:
+  + ….UsuarioApi
+  o ….internal.controller.UsuarioRestController
+  o ….internal.repository.UsuarioRepository
+  o ….internal.service.CadastroUsuarioService
+  o ….internal.service.ConsultaUsuarioService
+  o ….internal.service.UsuarioResponseMapper

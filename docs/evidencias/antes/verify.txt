@@ -1,0 +1,6 @@
+verify(): FALHOU
+
+- Module 'service' depends on non-exposed type com.exemplo.usuario.domain.vo.EmailUsuario within module 'domain'!
+Method <com.exemplo.usuario.service.UsuarioService.criar(com.exemplo.usuario.dto.UsuarioRequestDTO)> calls method <com.exemplo.usuario.domain.vo.EmailUsuario.getValor()> in (UsuarioService.java:46)
+- Module 'service' depends on non-exposed type com.exemplo.usuario.domain.vo.EmailUsuario within module 'domain'!
+Method <com.exemplo.usuario.service.UsuarioService.criar(com.exemplo.usuario.dto.UsuarioRequestDTO)> calls constructor <com.exemplo.usuario.domain.vo.EmailUsuario.<init>(java.lang.String)> in (UsuarioService.java:46)

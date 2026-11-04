@@ -1,0 +1,69 @@
+# Config
+> Logical name: config
+> Base package: com.exemplo.usuario.config
+> Excluded packages: none
+> Direct module dependencies: none
+> Spring beans:
+  + ….OpenApiConfig
+  + ….SecurityConfig
+  o io.swagger.v3.oas.models.OpenAPI
+  o org.springframework.security.core.userdetails.UserDetailsService
+  o org.springframework.security.crypto.password.PasswordEncoder
+  o org.springframework.security.web.SecurityFilterChain
+
+# Controller
+> Logical name: controller
+> Base package: com.exemplo.usuario.controller
+> Excluded packages: none
+> Direct module dependencies: 
+  - dto
+  + service
+> Spring beans:
+  + ….ApiExceptionHandler
+  + ….CursoRestController
+  + ….HomeController
+  + ….MatriculaRestController
+  + ….MensalidadeRestController
+  + ….UsuarioRestController
+
+# Domain
+> Logical name: domain
+> Base package: com.exemplo.usuario.domain
+> Excluded packages: none
+> Direct module dependencies: none
+> Spring beans: none
+
+# Dto
+> Logical name: dto
+> Base package: com.exemplo.usuario.dto
+> Excluded packages: none
+> Direct module dependencies: 
+  - domain
+> Spring beans: none
+
+# Repository
+> Logical name: repository
+> Base package: com.exemplo.usuario.repository
+> Excluded packages: none
+> Direct module dependencies: 
+  - domain
+> Spring beans:
+  + ….AssinaturaRepository
+  + ….CursoRepository
+  + ….MatriculaRepository
+  + ….MensalidadeRepository
+  + ….UsuarioRepository
+
+# Service
+> Logical name: service
+> Base package: com.exemplo.usuario.service
+> Excluded packages: none
+> Direct module dependencies: 
+  - domain
+  - dto
+  + repository
+> Spring beans:
+  + ….CursoService
+  + ….MatriculaService
+  + ….MensalidadeService
+  + ….UsuarioService

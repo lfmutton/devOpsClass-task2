@@ -1,0 +1,27 @@
+@startuml
+set separator none
+title UsuarioApplication
+
+top to bottom direction
+
+!include <C4/C4>
+!include <C4/C4_Context>
+!include <C4/C4_Component>
+
+Container_Boundary("UsuarioApplication.UsuarioApplication_boundary", "UsuarioApplication", $tags="") {
+  Component(UsuarioApplication.UsuarioApplication.Domain, "Domain", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Dto, "Dto", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Repository, "Repository", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Service, "Service", $techn="Module", $descr="", $tags="", $link="")
+  Component(UsuarioApplication.UsuarioApplication.Controller, "Controller", $techn="Module", $descr="", $tags="", $link="")
+}
+
+Rel(UsuarioApplication.UsuarioApplication.Service, UsuarioApplication.UsuarioApplication.Dto, "depends on", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Service, UsuarioApplication.UsuarioApplication.Domain, "depends on", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Service, UsuarioApplication.UsuarioApplication.Repository, "uses", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Controller, UsuarioApplication.UsuarioApplication.Dto, "depends on", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Controller, UsuarioApplication.UsuarioApplication.Service, "uses", $techn="", $tags="", $link="")
+Rel(UsuarioApplication.UsuarioApplication.Dto, UsuarioApplication.UsuarioApplication.Domain, "depends on", $techn="", $tags="", $link="")
+
+SHOW_LEGEND(true)
+@enduml
