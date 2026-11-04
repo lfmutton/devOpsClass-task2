@@ -385,13 +385,25 @@ Cada modulo usa so as pastas de que precisa (ex.: `mensalidade` nao tem controll
 ### Grafo de dependencias (sem ciclos)
 
 ```
-usuario    -> assinatura, mensalidade, shared
-matricula  -> usuario, curso, assinatura, shared
-curso      -> shared
-assinatura -> shared
-mensalidade-> shared
-shared     -> (nada)
+matricula   -> usuario, curso, assinatura, shared
+mensalidade -> usuario, shared
+usuario     -> assinatura, shared
+curso       -> shared
+assinatura  -> shared
+shared      -> (nada)
 ```
+
+### Inversao de dependencia: usuario x mensalidade
+
+O endpoint `PUT /api/usuarios/{id}/mensalidade` pertence ao modulo **mensalidade** e precisa do usuario.
+Se o usuario tambem dependesse da mensalidade, haveria um ciclo. Para evitar isso:
+
+- O **usuario** declara a interface `MensalidadeConsulta` ("a mensalidade esta paga?") e o modulo
+  **mensalidade** a implementa (`MensalidadeConsultaAdapter`).
+- No cadastro, o **usuario** publica `UsuarioCriadoEvent`; o modulo **mensalidade** escuta o evento
+  (`MensalidadeInicialListener`) e cria a mensalidade PAGA na mesma transacao.
+
+Assim a seta fica so `mensalidade -> usuario`.
 
 ### IDs em vez de entidades entre modulos
 

@@ -1,4 +1,4 @@
-package com.exemplo.usuario.usuario.internal.dto;
+package com.exemplo.usuario.mensalidade.internal.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

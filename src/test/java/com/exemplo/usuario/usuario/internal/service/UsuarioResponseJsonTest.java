@@ -1,8 +1,8 @@
 package com.exemplo.usuario.usuario.internal.service;
 
 import com.exemplo.usuario.assinatura.dto.AssinaturaResponseDTO;
-import com.exemplo.usuario.usuario.internal.dto.AcessoResponseDTO;
-import com.exemplo.usuario.usuario.internal.dto.UsuarioResponseDTO;
+import com.exemplo.usuario.usuario.dto.AcessoResponseDTO;
+import com.exemplo.usuario.usuario.dto.UsuarioResponseDTO;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

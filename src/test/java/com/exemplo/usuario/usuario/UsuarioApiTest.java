@@ -1,18 +1,22 @@
 package com.exemplo.usuario.usuario;
 
-import com.exemplo.usuario.mensalidade.MensalidadeService;
+import com.exemplo.usuario.assinatura.AssinaturaService;
+import com.exemplo.usuario.assinatura.dto.AssinaturaResponseDTO;
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
 import com.exemplo.usuario.usuario.internal.domain.Usuario;
 import com.exemplo.usuario.usuario.internal.repository.UsuarioRepository;
+import com.exemplo.usuario.usuario.internal.service.UsuarioResponseMapper;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-// API publica do modulo usuario (usada pelo modulo matricula).
+// API publica do modulo usuario (usada pelos modulos matricula e mensalidade).
 @ExtendWith(MockitoExtension.class)
 class UsuarioApiTest {
 
@@ -31,26 +35,42 @@ class UsuarioApiTest {
     private UsuarioRepository repository;
 
     @Mock
-    private MensalidadeService mensalidadeService;
+    private MensalidadeConsulta mensalidadeConsulta;
+
+    @Mock
+    private AssinaturaService assinaturaService;
 
     private UsuarioApi api;
 
     @BeforeEach
     void setUp() {
-        api = new UsuarioApi(repository, mensalidadeService);
+        // O mapper e real: so os modulos vizinhos sao mockados.
+        var mapper = new UsuarioResponseMapper(assinaturaService, mensalidadeConsulta);
+        api = new UsuarioApi(repository, mensalidadeConsulta, mapper);
     }
 
     private Usuario usuarioExistente() {
         var usuario = new Usuario("Fulano", "fulano@teste.com", "hash");
+        ReflectionTestUtils.setField(usuario, "id", 1L);
         when(repository.findById(1L)).thenReturn(Optional.of(usuario));
         return usuario;
+    }
+
+    private void usuarioNaoExiste() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+    }
+
+    // Prepara o que o mapper consulta nos modulos vizinhos.
+    private void vizinhosRespondem(String statusMensalidade) {
+        when(mensalidadeConsulta.statusAtual(1L)).thenReturn(Optional.of(statusMensalidade));
+        when(assinaturaService.resumo(1L)).thenReturn(new AssinaturaResponseDTO("BASICO", 0, 0, 0));
     }
 
     @Test
     void deveLiberarAcessoQuandoMensalidadeEstaPaga() {
         // DADO
         var usuario = usuarioExistente();
-        when(mensalidadeService.estaPaga(1L)).thenReturn(true);
+        when(mensalidadeConsulta.estaPaga(1L)).thenReturn(true);
 
         // QUANDO
         api.validarAcessoPlataforma(1L);
@@ -65,7 +85,7 @@ class UsuarioApiTest {
     void deveBloquearAcessoESalvarFlagsQuandoMensalidadeNaoEstaPaga() {
         // DADO
         var usuario = usuarioExistente();
-        when(mensalidadeService.estaPaga(1L)).thenReturn(false);
+        when(mensalidadeConsulta.estaPaga(1L)).thenReturn(false);
 
         // QUANDO
         var ex = assertThrows(IllegalStateException.class, () -> api.validarAcessoPlataforma(1L));
@@ -81,13 +101,62 @@ class UsuarioApiTest {
     @Test
     void deveLancar404AoValidarUsuarioInexistente() {
         // DADO
-        when(repository.findById(99L)).thenReturn(Optional.empty());
+        usuarioNaoExiste();
 
         // QUANDO / ENTAO
         var ex = assertThrows(RecursoNaoEncontradoException.class, () -> api.validarAcessoPlataforma(99L));
         assertEquals("Usuario nao encontrado", ex.getMessage());
         verify(repository, never()).save(any());
-        verifyNoInteractions(mensalidadeService);
+        verifyNoInteractions(mensalidadeConsulta);
+    }
+
+    @Test
+    void reavaliarAcessoDeveLiberarEDevolverUsuarioAtualizado() {
+        // DADO
+        var usuario = usuarioExistente();
+        when(mensalidadeConsulta.estaPaga(1L)).thenReturn(true);
+        vizinhosRespondem("PAGA");
+        when(repository.save(usuario)).thenReturn(usuario);
+
+        // QUANDO
+        var resultado = api.reavaliarAcesso(1L);
+
+        // ENTAO
+        assertEquals("PAGA", resultado.acesso().statusMensalidade());
+        assertTrue(resultado.acesso().temAcessoAoCurso());
+        assertFalse(resultado.acesso().plataformaCongelada());
+    }
+
+    @Test
+    void reavaliarAcessoDeveCongelarSemLancarExcecao() {
+        // DADO
+        var usuario = usuarioExistente();
+        usuario.validarAcessoPlataforma(true);
+        when(mensalidadeConsulta.estaPaga(1L)).thenReturn(false);
+        vizinhosRespondem("PENDENTE");
+        when(repository.save(usuario)).thenReturn(usuario);
+
+        // QUANDO
+        var resultado = api.reavaliarAcesso(1L);
+
+        // ENTAO
+        // O bloqueio nao e erro aqui: o usuario e salvo e devolvido com as flags atualizadas.
+        assertEquals("PENDENTE", resultado.acesso().statusMensalidade());
+        assertFalse(resultado.acesso().temAcessoAoCurso());
+        assertTrue(resultado.acesso().plataformaCongelada());
+        verify(repository).save(usuario);
+    }
+
+    @Test
+    void deveVerificarExistenciaDoUsuario() {
+        // DADO
+        usuarioExistente();
+        usuarioNaoExiste();
+
+        // QUANDO / ENTAO
+        assertDoesNotThrow(() -> api.verificarExistencia(1L));
+        var ex = assertThrows(RecursoNaoEncontradoException.class, () -> api.verificarExistencia(99L));
+        assertEquals("Usuario nao encontrado", ex.getMessage());
     }
 
     @Test
@@ -105,7 +174,7 @@ class UsuarioApiTest {
     @Test
     void deveLancar404AoBuscarNomeDeUsuarioInexistente() {
         // DADO
-        when(repository.findById(99L)).thenReturn(Optional.empty());
+        usuarioNaoExiste();
 
         // QUANDO / ENTAO
         var ex = assertThrows(RecursoNaoEncontradoException.class, () -> api.buscarNome(99L));

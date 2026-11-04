@@ -1,7 +1,7 @@
 package com.exemplo.usuario.usuario.internal.controller;
 
 import com.exemplo.usuario.usuario.internal.dto.UsuarioRequestDTO;
-import com.exemplo.usuario.usuario.internal.dto.UsuarioResponseDTO;
+import com.exemplo.usuario.usuario.dto.UsuarioResponseDTO;
 import com.exemplo.usuario.usuario.internal.service.CadastroUsuarioService;
 import com.exemplo.usuario.usuario.internal.service.ConsultaUsuarioService;
 

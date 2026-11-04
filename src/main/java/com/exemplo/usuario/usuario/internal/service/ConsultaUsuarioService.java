@@ -2,7 +2,7 @@ package com.exemplo.usuario.usuario.internal.service;
 
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
 import com.exemplo.usuario.usuario.internal.domain.Usuario;
-import com.exemplo.usuario.usuario.internal.dto.UsuarioResponseDTO;
+import com.exemplo.usuario.usuario.dto.UsuarioResponseDTO;
 import com.exemplo.usuario.usuario.internal.repository.UsuarioRepository;
 
 import org.springframework.stereotype.Service;

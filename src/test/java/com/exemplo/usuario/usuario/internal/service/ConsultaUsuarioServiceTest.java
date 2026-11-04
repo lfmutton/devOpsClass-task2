@@ -2,9 +2,8 @@ package com.exemplo.usuario.usuario.internal.service;
 
 import com.exemplo.usuario.assinatura.AssinaturaService;
 import com.exemplo.usuario.assinatura.dto.AssinaturaResponseDTO;
-import com.exemplo.usuario.mensalidade.MensalidadeService;
-import com.exemplo.usuario.mensalidade.StatusMensalidade;
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
+import com.exemplo.usuario.usuario.MensalidadeConsulta;
 import com.exemplo.usuario.usuario.internal.domain.Usuario;
 import com.exemplo.usuario.usuario.internal.repository.UsuarioRepository;
 
@@ -33,14 +32,14 @@ class ConsultaUsuarioServiceTest {
     private AssinaturaService assinaturaService;
 
     @Mock
-    private MensalidadeService mensalidadeService;
+    private MensalidadeConsulta mensalidadeConsulta;
 
     private ConsultaUsuarioService service;
 
     @BeforeEach
     void setUp() {
         // O mapper e real: so os modulos vizinhos (assinatura e mensalidade) sao mockados.
-        var mapper = new UsuarioResponseMapper(assinaturaService, mensalidadeService);
+        var mapper = new UsuarioResponseMapper(assinaturaService, mensalidadeConsulta);
         service = new ConsultaUsuarioService(repository, mapper);
     }
 
@@ -59,8 +58,8 @@ class ConsultaUsuarioServiceTest {
         when(repository.findAll()).thenReturn(List.of(comMensalidade, semMensalidade));
         when(assinaturaService.resumo(1L)).thenReturn(new AssinaturaResponseDTO("BASICO", 0, 0, 0));
         when(assinaturaService.resumo(2L)).thenReturn(new AssinaturaResponseDTO(null, null, null, null));
-        when(mensalidadeService.buscarStatus(1L)).thenReturn(Optional.of(StatusMensalidade.PAGA));
-        when(mensalidadeService.buscarStatus(2L)).thenReturn(Optional.empty());
+        when(mensalidadeConsulta.statusAtual(1L)).thenReturn(Optional.of("PAGA"));
+        when(mensalidadeConsulta.statusAtual(2L)).thenReturn(Optional.empty());
 
         // QUANDO
         var resultado = service.listarTodos();
@@ -80,7 +79,7 @@ class ConsultaUsuarioServiceTest {
         var usuario = usuarioComId(1L, "Fulano", "fulano@teste.com");
         when(repository.findById(1L)).thenReturn(Optional.of(usuario));
         when(assinaturaService.resumo(1L)).thenReturn(new AssinaturaResponseDTO("BASICO", 0, 0, 0));
-        when(mensalidadeService.buscarStatus(1L)).thenReturn(Optional.of(StatusMensalidade.PENDENTE));
+        when(mensalidadeConsulta.statusAtual(1L)).thenReturn(Optional.of("PENDENTE"));
 
         // QUANDO
         var resultado = service.buscarPorId(1L);

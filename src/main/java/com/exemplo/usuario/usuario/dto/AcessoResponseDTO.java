@@ -1,4 +1,4 @@
-package com.exemplo.usuario.usuario.internal.dto;
+package com.exemplo.usuario.usuario.dto;
 
 // Parte do UsuarioResponseDTO com a mensalidade e o acesso a plataforma.
 // statusMensalidade vem do modulo mensalidade; as flags vem da tabela usuarios.

@@ -1,40 +1,45 @@
 package com.exemplo.usuario.usuario.internal.service;
 
 import com.exemplo.usuario.assinatura.AssinaturaService;
-import com.exemplo.usuario.mensalidade.MensalidadeService;
-import com.exemplo.usuario.mensalidade.StatusMensalidade;
+import com.exemplo.usuario.usuario.MensalidadeConsulta;
+import com.exemplo.usuario.usuario.UsuarioCriadoEvent;
+import com.exemplo.usuario.usuario.dto.UsuarioResponseDTO;
 import com.exemplo.usuario.usuario.internal.domain.EmailUsuario;
 import com.exemplo.usuario.usuario.internal.domain.Usuario;
 import com.exemplo.usuario.usuario.internal.dto.UsuarioRequestDTO;
-import com.exemplo.usuario.usuario.internal.dto.UsuarioResponseDTO;
 import com.exemplo.usuario.usuario.internal.repository.UsuarioRepository;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 // Camada: SERVICE.
-// Caso de uso de CRIACAO de usuario.
-// Orquestra tres modulos dentro de uma unica transacao:
-// usuario (salva), assinatura (cria a BASICA) e mensalidade (cria ja PAGA).
+// Caso de uso de CRIACAO de usuario, numa unica transacao:
+// salva o usuario, cria a assinatura BASICA e publica UsuarioCriadoEvent.
+// O modulo mensalidade escuta o evento e cria a mensalidade PAGA,
+// sem que o usuario precise conhecer o modulo mensalidade.
 @Service
 public class CadastroUsuarioService {
 
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final AssinaturaService assinaturaService;
-    private final MensalidadeService mensalidadeService;
+    private final MensalidadeConsulta mensalidadeConsulta;
+    private final ApplicationEventPublisher eventos;
     private final UsuarioResponseMapper mapper;
 
     public CadastroUsuarioService(UsuarioRepository repository,
                                   PasswordEncoder passwordEncoder,
                                   AssinaturaService assinaturaService,
-                                  MensalidadeService mensalidadeService,
+                                  MensalidadeConsulta mensalidadeConsulta,
+                                  ApplicationEventPublisher eventos,
                                   UsuarioResponseMapper mapper) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.assinaturaService = assinaturaService;
-        this.mensalidadeService = mensalidadeService;
+        this.mensalidadeConsulta = mensalidadeConsulta;
+        this.eventos = eventos;
         this.mapper = mapper;
     }
 
@@ -55,10 +60,11 @@ public class CadastroUsuarioService {
 
         // Os outros modulos so precisam do id do usuario.
         assinaturaService.criarParaUsuario(id);
-        mensalidadeService.definirStatus(id, StatusMensalidade.PAGA);
+        // O listener do modulo mensalidade roda aqui mesmo, na mesma transacao.
+        eventos.publishEvent(new UsuarioCriadoEvent(id));
 
         // Libera o acesso desde o cadastro e grava as flags atualizadas.
-        salvo.validarAcessoPlataforma(mensalidadeService.estaPaga(id));
+        salvo.validarAcessoPlataforma(mensalidadeConsulta.estaPaga(id));
         return mapper.de(repository.save(salvo));
     }
 }

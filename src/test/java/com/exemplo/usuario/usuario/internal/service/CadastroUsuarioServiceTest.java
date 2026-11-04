@@ -2,8 +2,8 @@ package com.exemplo.usuario.usuario.internal.service;
 
 import com.exemplo.usuario.assinatura.AssinaturaService;
 import com.exemplo.usuario.assinatura.dto.AssinaturaResponseDTO;
-import com.exemplo.usuario.mensalidade.MensalidadeService;
-import com.exemplo.usuario.mensalidade.StatusMensalidade;
+import com.exemplo.usuario.usuario.MensalidadeConsulta;
+import com.exemplo.usuario.usuario.UsuarioCriadoEvent;
 import com.exemplo.usuario.usuario.internal.domain.Usuario;
 import com.exemplo.usuario.usuario.internal.dto.UsuarioRequestDTO;
 import com.exemplo.usuario.usuario.internal.repository.UsuarioRepository;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -43,14 +44,18 @@ class CadastroUsuarioServiceTest {
     private AssinaturaService assinaturaService;
 
     @Mock
-    private MensalidadeService mensalidadeService;
+    private MensalidadeConsulta mensalidadeConsulta;
+
+    @Mock
+    private ApplicationEventPublisher eventos;
 
     private CadastroUsuarioService service;
 
     @BeforeEach
     void setUp() {
-        var mapper = new UsuarioResponseMapper(assinaturaService, mensalidadeService);
-        service = new CadastroUsuarioService(repository, passwordEncoder, assinaturaService, mensalidadeService, mapper);
+        var mapper = new UsuarioResponseMapper(assinaturaService, mensalidadeConsulta);
+        service = new CadastroUsuarioService(repository, passwordEncoder, assinaturaService,
+                mensalidadeConsulta, eventos, mapper);
     }
 
     private UsuarioRequestDTO novoRequest(String email) {
@@ -73,19 +78,21 @@ class CadastroUsuarioServiceTest {
         when(repository.existsByPerfilEmailValor("fulano@teste.com")).thenReturn(false);
         when(passwordEncoder.encode("senha123")).thenReturn("hash-bcrypt");
         when(repository.save(any(Usuario.class))).thenAnswer(inv -> salvarComId(inv.getArgument(0)));
-        when(mensalidadeService.estaPaga(1L)).thenReturn(true);
+        when(mensalidadeConsulta.estaPaga(1L)).thenReturn(true);
         when(assinaturaService.resumo(1L)).thenReturn(new AssinaturaResponseDTO("BASICO", 0, 0, 0));
-        when(mensalidadeService.buscarStatus(1L)).thenReturn(Optional.of(StatusMensalidade.PAGA));
+        when(mensalidadeConsulta.statusAtual(1L)).thenReturn(Optional.of("PAGA"));
 
         // QUANDO
         var resultado = service.criar(novoRequest("  Fulano@Teste.COM "));
 
         // ENTAO
-        // Primeiro salva o usuario (para ter id), depois cria assinatura e mensalidade nos outros modulos.
-        InOrder ordem = inOrder(repository, assinaturaService, mensalidadeService);
+        // Primeiro salva o usuario (para ter id), depois cria a assinatura e
+        // publica o evento que o modulo mensalidade usa para criar a mensalidade PAGA.
+        InOrder ordem = inOrder(repository, assinaturaService, eventos, mensalidadeConsulta);
         ordem.verify(repository).save(any(Usuario.class));
         ordem.verify(assinaturaService).criarParaUsuario(1L);
-        ordem.verify(mensalidadeService).definirStatus(1L, StatusMensalidade.PAGA);
+        ordem.verify(eventos).publishEvent(new UsuarioCriadoEvent(1L));
+        ordem.verify(mensalidadeConsulta).estaPaga(1L);
 
         assertEquals(1L, resultado.id());
         assertEquals("fulano@teste.com", resultado.email());
@@ -108,8 +115,8 @@ class CadastroUsuarioServiceTest {
             capturado[0] = salvarComId(inv.getArgument(0));
             return capturado[0];
         });
-        when(mensalidadeService.estaPaga(1L)).thenReturn(true);
-        when(mensalidadeService.buscarStatus(1L)).thenReturn(Optional.of(StatusMensalidade.PAGA));
+        when(mensalidadeConsulta.estaPaga(1L)).thenReturn(true);
+        when(mensalidadeConsulta.statusAtual(1L)).thenReturn(Optional.of("PAGA"));
 
         // QUANDO
         service.criar(novoRequest("FULANO@teste.com"));
@@ -130,7 +137,7 @@ class CadastroUsuarioServiceTest {
         assertEquals("E-mail ja cadastrado", ex.getMessage());
         verify(passwordEncoder, never()).encode(any());
         verify(repository, never()).save(any());
-        verifyNoInteractions(assinaturaService, mensalidadeService);
+        verifyNoInteractions(assinaturaService, mensalidadeConsulta, eventos);
     }
 
     @Test
@@ -139,6 +146,6 @@ class CadastroUsuarioServiceTest {
         // O Value Object barra o e-mail nulo antes de qualquer acesso ao banco.
         var ex = assertThrows(IllegalArgumentException.class, () -> service.criar(novoRequest(null)));
         assertEquals("E-mail e obrigatorio", ex.getMessage());
-        verifyNoInteractions(repository, passwordEncoder, assinaturaService, mensalidadeService);
+        verifyNoInteractions(repository, passwordEncoder, assinaturaService, mensalidadeConsulta, eventos);
     }
 }

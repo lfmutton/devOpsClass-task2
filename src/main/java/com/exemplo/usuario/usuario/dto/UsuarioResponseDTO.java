@@ -1,4 +1,4 @@
-package com.exemplo.usuario.usuario.internal.dto;
+package com.exemplo.usuario.usuario.dto;
 
 import com.exemplo.usuario.assinatura.dto.AssinaturaResponseDTO;
 
