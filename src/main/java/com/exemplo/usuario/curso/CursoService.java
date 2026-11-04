@@ -1,8 +1,11 @@
 package com.exemplo.usuario.curso;
 
-import com.exemplo.usuario.curso.internal.Curso;
-import com.exemplo.usuario.curso.internal.CursoRepository;
+import com.exemplo.usuario.curso.dto.CursoRequestDTO;
+import com.exemplo.usuario.curso.dto.CursoResponseDTO;
+import com.exemplo.usuario.curso.internal.domain.Curso;
+import com.exemplo.usuario.curso.internal.repository.CursoRepository;
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

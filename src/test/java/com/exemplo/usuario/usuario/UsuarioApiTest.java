@@ -2,8 +2,9 @@ package com.exemplo.usuario.usuario;
 
 import com.exemplo.usuario.mensalidade.MensalidadeService;
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
-import com.exemplo.usuario.usuario.internal.Usuario;
-import com.exemplo.usuario.usuario.internal.UsuarioRepository;
+import com.exemplo.usuario.usuario.internal.domain.Usuario;
+import com.exemplo.usuario.usuario.internal.repository.UsuarioRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

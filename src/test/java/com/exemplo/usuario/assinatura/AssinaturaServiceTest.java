@@ -1,9 +1,11 @@
 package com.exemplo.usuario.assinatura;
 
-import com.exemplo.usuario.assinatura.internal.Assinatura;
-import com.exemplo.usuario.assinatura.internal.AssinaturaRepository;
-import com.exemplo.usuario.assinatura.internal.PlanoAssinatura;
+import com.exemplo.usuario.assinatura.dto.AssinaturaResponseDTO;
+import com.exemplo.usuario.assinatura.internal.domain.Assinatura;
+import com.exemplo.usuario.assinatura.internal.domain.PlanoAssinatura;
+import com.exemplo.usuario.assinatura.internal.repository.AssinaturaRepository;
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

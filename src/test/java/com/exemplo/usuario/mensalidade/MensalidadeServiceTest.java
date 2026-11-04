@@ -1,7 +1,8 @@
 package com.exemplo.usuario.mensalidade;
 
-import com.exemplo.usuario.mensalidade.internal.Mensalidade;
-import com.exemplo.usuario.mensalidade.internal.MensalidadeRepository;
+import com.exemplo.usuario.mensalidade.internal.domain.Mensalidade;
+import com.exemplo.usuario.mensalidade.internal.repository.MensalidadeRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

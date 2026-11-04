@@ -1,8 +1,10 @@
 package com.exemplo.usuario.assinatura;
 
-import com.exemplo.usuario.assinatura.internal.Assinatura;
-import com.exemplo.usuario.assinatura.internal.AssinaturaRepository;
+import com.exemplo.usuario.assinatura.dto.AssinaturaResponseDTO;
+import com.exemplo.usuario.assinatura.internal.domain.Assinatura;
+import com.exemplo.usuario.assinatura.internal.repository.AssinaturaRepository;
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

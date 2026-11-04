@@ -1,7 +1,8 @@
 package com.exemplo.usuario.mensalidade;
 
-import com.exemplo.usuario.mensalidade.internal.Mensalidade;
-import com.exemplo.usuario.mensalidade.internal.MensalidadeRepository;
+import com.exemplo.usuario.mensalidade.internal.domain.Mensalidade;
+import com.exemplo.usuario.mensalidade.internal.repository.MensalidadeRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

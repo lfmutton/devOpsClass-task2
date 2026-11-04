@@ -364,6 +364,23 @@ Cada subpacote direto de `com.exemplo.usuario` e um modulo:
 
 - **Pacote base do modulo = API publica.** Ex.: `com.exemplo.usuario.curso.CursoService` pode ser usado por outros modulos.
 - **Subpacotes (ex.: `.internal`) = privados do modulo.** Entidades JPA, repositories e classes auxiliares ficam la; outro modulo que os importar faz o `ModularidadeTest` falhar.
+- **Excecao: pacote `dto` marcado com `@NamedInterface`.** Em `curso.dto` e `assinatura.dto` (ver `package-info.java`), os DTOs ficam visiveis para os outros modulos.
+
+### Organizacao interna de cada modulo
+
+```
+curso/
+├── CursoService.java        -> API publica do modulo
+├── dto/                     -> DTOs publicos (@NamedInterface)
+└── internal/                -> privado
+    ├── controller/          -> controllers REST
+    ├── domain/              -> entidades, embutidos e Value Objects
+    ├── dto/                 -> DTOs usados so dentro do modulo
+    ├── repository/          -> interfaces do Spring Data
+    └── service/             -> services internos e mappers
+```
+
+Cada modulo usa so as pastas de que precisa (ex.: `mensalidade` nao tem controller).
 
 ### Grafo de dependencias (sem ciclos)
 

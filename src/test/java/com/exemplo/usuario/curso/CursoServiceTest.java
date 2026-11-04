@@ -1,8 +1,10 @@
 package com.exemplo.usuario.curso;
 
-import com.exemplo.usuario.curso.internal.Curso;
-import com.exemplo.usuario.curso.internal.CursoRepository;
+import com.exemplo.usuario.curso.dto.CursoRequestDTO;
+import com.exemplo.usuario.curso.internal.domain.Curso;
+import com.exemplo.usuario.curso.internal.repository.CursoRepository;
 import com.exemplo.usuario.shared.RecursoNaoEncontradoException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
