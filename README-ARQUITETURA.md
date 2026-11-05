@@ -323,6 +323,11 @@ classDiagram
 
 ## 9 – Mini-lab — evidência arquitetural
 
+| Branch | Commit |
+|---|---|
+| `main` (antes) | [`ff23035`](https://github.com/lfmutton/devOpsClass-task2/commit/ff23035) |
+| `refactor/monolito-modular` (depois) | atual |
+
 ### 9.1 Branch `main` — antes (monólito em camadas)
 
 **Estrutura:**
@@ -337,18 +342,6 @@ com.exemplo.usuario/
 ├── dto/           12 DTOs de todas as capacidades, misturados
 ├── repository/    5 repositories
 └── service/       CursoService, MatriculaService, MensalidadeService, UsuarioService
-```
-
-**Dependências:**
-
-```mermaid
-flowchart LR
-    controller --> service
-    controller --> dto
-    service --> repository
-    service --> domain
-    service --> dto
-    dto --> domain
 ```
 
 **Estrutura na IDE:**
@@ -379,22 +372,6 @@ com.exemplo.usuario/
 └── shared/        RecursoNaoEncontradoException, Texto, config/, controller/
 ```
 
-**Dependências:**
-
-```mermaid
-flowchart LR
-    matricula -- uses --> usuario
-    matricula -- uses --> curso
-    matricula -- uses --> assinatura
-    usuario -- uses --> assinatura
-    mensalidade -- uses --> usuario
-    mensalidade -. listens to .-> usuario
-    usuario --> shared
-    curso --> shared
-    matricula --> shared
-    assinatura --> shared
-```
-
 **Estrutura na IDE:**
 
 ![Estrutura modular na IDE](docs/evidencias/depois/estrutura-ide.png)
@@ -417,12 +394,3 @@ flowchart LR
 | Código da modularização (funcionalidade da AC1) | Pacotes `src/main/java/com/exemplo/usuario/{usuario,curso,matricula,assinatura,mensalidade,shared}`, nos commits `6731d2b`, `d547466` e `466fa6a` desta branch |
 | Evidência antes/depois das dependências e da estrutura | [Seção 9](#9--mini-lab--evidência-arquitetural) e [docs/evidencias/](docs/evidencias) (`estrutura.txt`, `modulos.txt`, `verify.txt`, `components.puml`) |
 | Testes executados após a refatoração | [Seção 9.3](#93-testes-e-cobertura-após-a-refatoração) e `docs/evidencias/*/testes.txt`; a verificação contínua fica em `src/test/java/com/exemplo/usuario/ModularidadeTest.java` |
-
-**Como reproduzir:**
-
-```bash
-mvn clean test
-```
-
-O `ModularidadeTest` reprova o build se alguma fronteira for violada e gera o grafo atualizado em `target/spring-modulith-docs/`.
-
