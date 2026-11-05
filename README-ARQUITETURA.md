@@ -473,21 +473,3 @@ mvn clean test
 
 O `ModularidadeTest` reprova o build se alguma fronteira for violada e gera o grafo atualizado em `target/spring-modulith-docs/`.
 
----
-
-## 11 – Conclusão
-
-**O que foi comprovado:**
-
-- **A hipótese se confirmou.** Com a mesma ferramenta nos dois códigos, o antes só mostrava camadas e escondia um ciclo e 6 relações JPA entre capacidades. O depois mostra as capacidades, os contratos entre elas e o tipo de cada dependência (uso ou evento).
-- **As fronteiras deixaram de ser convenção e viraram regra executável.** Um acoplamento indevido agora quebra o build (`ModularidadeTest`) em vez de passar despercebido. Isso atende o **RNF 2.3**.
-- **O comportamento foi preservado:** 114 testes passando, mesmas URLs e mesmo JSON.
-- O **RNF 2.2** continua garantido, porque tudo roda numa única transação.
-
-**O que ainda precisa ser medido antes de extrair um serviço (ex.: o ranking):**
-
-1. **Carga do ranking com 100 mil alunos (RNF 1.2):** latência p95 e vazão da consulta paginada e indexada, com JMeter ou k6. Se o monólito com réplicas atender, extrair não se justifica.
-2. **Acoplamento em tempo de execução:** quantas chamadas o ranking faria aos outros módulos por requisição. Se forem muitas, a extração viraria tráfego de rede.
-3. **Consistência:** fora do monólito, a pontuação deixaria de estar na mesma transação da conclusão do curso. É preciso medir quanto atraso (consistência eventual) o negócio aceita.
-4. **Taxa de mudança por módulo**, pelo histórico do git: só vale extrair o que muda ou escala num ritmo diferente do resto.
-5. **Custo operacional:** deploy, observabilidade e banco a mais, comparados com o ganho medido nos itens 1 a 4.
