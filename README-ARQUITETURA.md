@@ -351,7 +351,9 @@ flowchart LR
     dto --> domain
 ```
 
-<!-- imagens da branch main -->
+**Estrutura na IDE:**
+
+![Estrutura em camadas na IDE](docs/evidencias/antes/estrutura-ide.png)
 
 ### 9.2 Branch `refactor/monolito-modular` — depois (monólito modular)
 
@@ -397,6 +399,12 @@ flowchart LR
 
 ![Estrutura modular na IDE](docs/evidencias/depois/estrutura-ide.png)
 
+### 9.3 Testes e cobertura após a refatoração
+
+![114 testes passando](docs/evidencias/depois/testes.png)
+
+![Cobertura de linhas (JaCoCo)](docs/evidencias/depois/cobertura.png)
+
 ---
 
 ## 10 – Evidências versionadas no Git
@@ -408,7 +416,7 @@ flowchart LR
 | C4 Container atualizado | [Seção 8.2](#82-nível-2--contêineres-atualizado) |
 | Código da modularização (funcionalidade da AC1) | Pacotes `src/main/java/com/exemplo/usuario/{usuario,curso,matricula,assinatura,mensalidade,shared}`, nos commits `6731d2b`, `d547466` e `466fa6a` desta branch |
 | Evidência antes/depois das dependências e da estrutura | [Seção 9](#9--mini-lab--evidência-arquitetural) e [docs/evidencias/](docs/evidencias) (`estrutura.txt`, `modulos.txt`, `verify.txt`, `components.puml`) |
-| Testes executados após a refatoração | [Seção 9](#9--mini-lab--evidência-arquitetural) e `docs/evidencias/*/testes.txt`; a verificação contínua fica em `src/test/java/com/exemplo/usuario/ModularidadeTest.java` |
+| Testes executados após a refatoração | [Seção 9.3](#93-testes-e-cobertura-após-a-refatoração) e `docs/evidencias/*/testes.txt`; a verificação contínua fica em `src/test/java/com/exemplo/usuario/ModularidadeTest.java` |
 
 **Como reproduzir:**
 
