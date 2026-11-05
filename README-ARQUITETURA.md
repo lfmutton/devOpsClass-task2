@@ -17,7 +17,6 @@ Evolução do projeto legado da AC1 — uma API Spring Boot (Java 21, PostgreSQL
 8. [C4](#8--c4)
 9. [Mini-lab](#9--mini-lab--evidência-arquitetural)
 10. [Evidências versionadas](#10--evidências-versionadas-no-git)
-11. [Conclusão](#11--conclusão)
 
 ---
 
@@ -324,23 +323,9 @@ classDiagram
 
 ## 9 – Mini-lab — evidência arquitetural
 
-**Hipótese:** a modularização torna as fronteiras e as dependências entre capacidades de negócio **mais explícitas**, sem alterar o comportamento da API.
+### 9.1 Branch `main` — antes (monólito em camadas)
 
-**Método:** a mesma ferramenta foi executada sobre os dois códigos:
-
-- **Antes:** branch `main` (commit `ff23035`), em camadas.
-- **Depois:** branch `refactor/monolito-modular` (commit `466fa6a`).
-- **Ferramenta:** **Spring Modulith 1.4.3**, com `ApplicationModules.of(...)`, `verify()` e `Documenter`.
-
-O Spring Modulith considera cada subpacote de `com.exemplo.usuario` um módulo, lê as dependências reais do bytecode e reprova ciclos e acessos a tipos internos de outro módulo. Também rodamos `mvn clean test` nas duas versões.
-
-A capacidade modularizada é a **própria AC1** (usuário, curso, matrícula, assinatura e mensalidade), como permite o item 10. O ranking e a gamificação seguirão o mesmo molde (`ranking/` e `gamificacao/`, com API pública na raiz e `internal/`).
-
-Os arquivos brutos estão em [`docs/evidencias/`](docs/evidencias).
-
-### 9.1 Estrutura antes — por camada técnica
-
-Arquivo completo: [docs/evidencias/antes/estrutura.txt](docs/evidencias/antes/estrutura.txt).
+**Estrutura:**
 
 ```
 com.exemplo.usuario/
@@ -354,9 +339,23 @@ com.exemplo.usuario/
 └── service/       CursoService, MatriculaService, MensalidadeService, UsuarioService
 ```
 
-### 9.2 Estrutura depois — por capacidade de negócio
+**Dependências:**
 
-Arquivo completo: [docs/evidencias/depois/estrutura.txt](docs/evidencias/depois/estrutura.txt).
+```mermaid
+flowchart LR
+    controller --> service
+    controller --> dto
+    service --> repository
+    service --> domain
+    service --> dto
+    dto --> domain
+```
+
+<!-- imagens da branch main -->
+
+### 9.2 Branch `refactor/monolito-modular` — depois (monólito modular)
+
+**Estrutura:**
 
 ```
 com.exemplo.usuario/
@@ -378,34 +377,7 @@ com.exemplo.usuario/
 └── shared/        RecursoNaoEncontradoException, Texto, config/, controller/
 ```
 
-Em relação ao exemplo do enunciado (`api/` + `internal/`), a API pública fica na **raiz** do pacote do módulo, que é a convenção padrão do Spring Modulith. O papel é o mesmo: o que está fora de `internal/` é o contrato.
-
-### 9.3 Dependências — antes × depois
-
-**Antes:** o Spring Modulith só consegue enxergar **camadas**. O grafo gerado ([antes/components.puml](docs/evidencias/antes/components.puml)) não mostra nenhuma capacidade de negócio:
-
-```mermaid
-flowchart LR
-    controller --> service
-    controller --> dto
-    service --> repository
-    service --> domain
-    service --> dto
-    dto --> domain
-```
-
-Para descobrir quem depende de quem entre capacidades, é preciso abrir os imports de cada classe:
-
-| Classe (antes) | Capacidades que ela toca |
-|---|---|
-| `UsuarioService` | usuário, **mensalidade** |
-| `MensalidadeService` | mensalidade, **usuário** ← ciclo com a linha de cima |
-| `MatriculaService` | matrícula, **usuário, curso, assinatura**, usando direto os 4 repositories |
-| Entidades `domain/` | 6 relações JPA cruzando capacidades: `Usuario↔Assinatura`, `Usuario→Mensalidade` (via `AcessoPlataforma`), `Mensalidade→Usuario`, `Matricula→Usuario`, `Matricula→Curso` |
-
-`verify()` antes ([antes/verify.txt](docs/evidencias/antes/verify.txt)): **FALHOU com 2 violações**, `service` usando o tipo interno `domain.vo.EmailUsuario`.
-
-**Depois:** o grafo gerado ([depois/components.puml](docs/evidencias/depois/components.puml)) mostra as **capacidades** e o **tipo** de cada dependência:
+**Dependências:**
 
 ```mermaid
 flowchart LR
@@ -421,35 +393,9 @@ flowchart LR
     assinatura --> shared
 ```
 
-`verify()` depois ([depois/verify.txt](docs/evidencias/depois/verify.txt)): **OK, nenhuma violação e nenhum ciclo**. Os contratos de cada módulo aparecem em [depois/modulos.txt](docs/evidencias/depois/modulos.txt), em "Named interfaces".
+**Estrutura na IDE:**
 
-O ciclo `usuário ⇄ mensalidade` foi quebrado por **inversão de dependência**: o `usuario` define a porta `MensalidadeConsulta` e publica `UsuarioCriadoEvent`, e o `mensalidade` implementa a porta e escuta o evento (na mesma transação).
-
-### 9.4 O que comparar — resultado
-
-| Evidência | Antes (`main`) | Depois (`refactor/monolito-modular`) | Resultado esperado atingido? |
-|---|---|---|---|
-| **Organização** | 6 pacotes por camada técnica (`controller`, `service`, `repository`, `domain`, `dto`, `config`) | 6 módulos por capacidade (`usuario`, `curso`, `matricula`, `assinatura`, `mensalidade` + `shared`) | ✅ Por capacidade de negócio |
-| **Dependências** | Capacidades misturadas nas mesmas camadas; ciclo `UsuarioService ⇄ MensalidadeService`; 6 relações JPA entre capacidades; 2 violações no `verify()` | Grafo explícito e unidirecional; 0 ciclos; 0 relações JPA entre módulos (só `usuarioId`/`cursoId`); 0 violações; acesso só por contratos (`UsuarioApi`, `CursoService`, `AssinaturaService`, `MensalidadeService`, `MensalidadeConsulta`, `UsuarioCriadoEvent`) | ✅ Explícitas e por contratos definidos |
-| **Testes** | 10 classes de teste em pastas por camada (`domain/`, `service/`, `dto/`, `repository/`) | 26 classes de teste espelhando os módulos: usuario 34, matricula 21, mensalidade 19, curso 16, assinatura 16, shared 4, mais `ModularidadeTest` e `CadastroEMensalidadeIntegracaoTest` | ✅ Concentrados por módulo |
-| **Evolução futura** | Extrair uma capacidade exige caçar classes em 5 pastas e desfazer relações JPA | Cada módulo já tem API, persistência e testes próprios, sem FK em código para outro módulo | ✅ Fronteira clara para extração futura |
-
-### 9.5 Testes executados — preservação do comportamento
-
-Saída completa: [antes/testes.txt](docs/evidencias/antes/testes.txt) e [depois/testes.txt](docs/evidencias/depois/testes.txt).
-
-| `mvn clean test` | Testes | Falhas | Erros | Resultado |
-|---|---|---|---|---|
-| Antes (`main`, `ff23035`) | 63 | 0 | 0 | BUILD SUCCESS |
-| Depois (`refactor/monolito-modular`, `466fa6a`) | **114** | **0** | **0** | **BUILD SUCCESS** |
-
-- Os cenários da `main` foram migrados para os novos pacotes sem mudar o que verificam (regras de matrícula, créditos, mensalidade, value objects, JSON e mapeamento JPA).
-- Testes novos:
-  - `ModularidadeTest`: a **arquitetura** em si (fronteiras e ciclos).
-  - `CadastroEMensalidadeIntegracaoTest`: integração com Spring e H2, cobrindo o evento entre os módulos `usuario` e `mensalidade`.
-  - Testes dos novos serviços, adapters e listeners.
-- **Contrato externo inalterado:** mesmas URLs e mesmo JSON (os DTOs usam `@JsonUnwrapped` para manter o formato plano), o front-end não precisou mudar, e a imagem Docker com PostgreSQL 16 subiu e respondeu normalmente.
-- **Complexidade ciclomática (JaCoCo):** 55 classes, nenhuma acima de 7.
+![Estrutura modular na IDE](docs/evidencias/depois/estrutura-ide.png)
 
 ---
 
@@ -462,8 +408,7 @@ Saída completa: [antes/testes.txt](docs/evidencias/antes/testes.txt) e [depois/
 | C4 Container atualizado | [Seção 8.2](#82-nível-2--contêineres-atualizado) |
 | Código da modularização (funcionalidade da AC1) | Pacotes `src/main/java/com/exemplo/usuario/{usuario,curso,matricula,assinatura,mensalidade,shared}`, nos commits `6731d2b`, `d547466` e `466fa6a` desta branch |
 | Evidência antes/depois das dependências e da estrutura | [Seção 9](#9--mini-lab--evidência-arquitetural) e [docs/evidencias/](docs/evidencias) (`estrutura.txt`, `modulos.txt`, `verify.txt`, `components.puml`) |
-| Testes executados após a refatoração | [Seção 9.5](#95-testes-executados--preservação-do-comportamento) e `docs/evidencias/*/testes.txt`; a verificação contínua fica em `src/test/java/com/exemplo/usuario/ModularidadeTest.java` |
-| Breve conclusão | [Seção 11](#11--conclusão) |
+| Testes executados após a refatoração | [Seção 9](#9--mini-lab--evidência-arquitetural) e `docs/evidencias/*/testes.txt`; a verificação contínua fica em `src/test/java/com/exemplo/usuario/ModularidadeTest.java` |
 
 **Como reproduzir:**
 
